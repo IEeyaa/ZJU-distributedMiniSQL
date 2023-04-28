@@ -1,0 +1,16 @@
+insert into City values (16,'Haarlem','NLD','Noord-Holland',148772);
+create table City ( ID int, Name char(35) unique, CountryCode char(3), District char(20), Population int, primary key(ID));
+insert into City values (16,'Haarlem','NLD','Noord-Holland',148772);
+insert into City values (17,'Almere','NLD','Flevoland',142465);
+delete from City where ID>50 and Population>200000;
+delete from City where ID=16;
+delete from City where ID=16;
+create table City ( ID int, Name char(35) unique, CountryCode char(3), District char(20), Population int, primary key(ID));
+delete from City where ID>50 and Population>200000;
+insert into City values (17,'Almere','NLD','Flevoland',142465);
+insert into City values (16,'Haarlem','NLD','Noord-Holland',148772);
+create table City ( ID int, Name char(35) unique, CountryCode char(3), District char(20), Population int, primary key(ID));
+insert into City values (16,'Haarlem','NLD','Noord-Holland',148772);
+delete from City where ID=16;
+insert into City values (17,'Almere','NLD','Flevoland',142465);
+delete from City where ID>50 and Population>200000;
