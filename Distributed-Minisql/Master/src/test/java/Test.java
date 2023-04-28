@@ -10,7 +10,7 @@ public class Test {
 
     public static void main(String[] args) throws Exception {
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 10);
-        CuratorFramework client = CuratorFrameworkFactory.newClient("10.162.22.76:2181", retryPolicy);
+        CuratorFramework client = CuratorFrameworkFactory.newClient("127.0.0.1:2181", retryPolicy);
         client.start();
 
 //        client.create().forPath("/app1/p1");
