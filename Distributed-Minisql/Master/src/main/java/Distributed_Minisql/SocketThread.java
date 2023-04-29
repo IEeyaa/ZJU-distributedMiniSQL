@@ -2,7 +2,6 @@ package Distributed_Minisql;
 
 import java.io.*;
 import java.net.Socket;
-import java.net.SocketException;
 
 public class SocketThread implements Runnable {
     private boolean isRunning = false;
