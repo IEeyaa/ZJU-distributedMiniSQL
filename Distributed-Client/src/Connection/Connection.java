@@ -7,16 +7,23 @@ import java.io.BufferedWriter;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 
-public class MasterConnection {
+public class Connection {
+    private String type;
     private String ip;
     private int port;
+
     private Socket socket;
     private BufferedReader reader;
     private BufferedWriter writer;
 
-    public MasterConnection(String ip, int port) {
+    public Connection(String ip, int port, String type) {
+        this.type = type;
         this.ip = ip;
         this.port = port;
+    }
+
+    public String Type() {
+        return type;
     }
 
     public String IP() {
@@ -28,7 +35,7 @@ public class MasterConnection {
     }
 
     public String toString() {
-        return ip + ":" + port;
+        return type + " " + ip + ":" + port;
     }
 
     public boolean connect() {
@@ -38,7 +45,7 @@ public class MasterConnection {
             writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             return true;
         } catch (IOException e) {
-            System.err.println("Failed to connect to the master server: " + e.getMessage());
+            System.err.println("Failed to connect to the " + type + "server: " + e.getMessage());
             return false;
         }
     }
@@ -50,7 +57,7 @@ public class MasterConnection {
             writer.flush();
             return true;
         } catch (IOException e) {
-            System.err.println("Failed to send message to the master server: " + e.getMessage());
+            System.err.println("Failed to send message to the " + type + "server: " + e.getMessage());
             return false;
         }
     }
@@ -59,7 +66,7 @@ public class MasterConnection {
         try {
             return reader.readLine();
         } catch (IOException e) {
-            System.err.println("Failed to receive message from the master server: " + e.getMessage());
+            System.err.println("Failed to receive message from the " + type + "server: " + e.getMessage());
             return null;
         }
     }
@@ -69,7 +76,7 @@ public class MasterConnection {
             socket.close();
             return true;
         } catch (IOException e) {
-            System.err.println("Failed to close the connection to the master server: " + e.getMessage());
+            System.err.println("Failed to close the connection to the " + type + "server: " + e.getMessage());
             return false;
         }
     }
