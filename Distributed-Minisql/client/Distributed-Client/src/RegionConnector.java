@@ -12,7 +12,7 @@ import org.json.JSONArray;
 
 
 public class RegionConnector {
-    
+
     private CacheManager cachemanager;
     private MasterConnector masterconnector;
     public RegionConnector(CacheManager cache,MasterConnector master){
@@ -26,14 +26,14 @@ public class RegionConnector {
         toregion.send(sql);
         return true;
     }
-    
-    
+
+
 
 
     class ToRegion implements Runnable {
-       
-        
-        
+
+
+
         private Socket socket;
         // private DataInputStream cin;
         // private DataOutputStream cout;
@@ -52,7 +52,7 @@ public class RegionConnector {
         public boolean ConnectThisRegion(){
             try {
                 socket=new Socket(ip,port);
-                
+
             } catch (SocketException e) {
                 // System.out.println("您要连接的region"+ip+" "+port+"有误");
                 return false;
@@ -73,29 +73,29 @@ public class RegionConnector {
         }
         public void send(String str){
             try {
-               
+
                 cout.write("execute:"+str);
                 cout.newLine();
                 cout.write("end");
                 cout.newLine();
-            
+
                 cout.flush();
             } catch (IOException e) {
                 e.printStackTrace();
             };
-            
+
         }
 
         private void receive() {
             String msg ="";
-           
+
             try {
                 while( (msg = cin.readLine()) != null) {
                     if (msg.equals("end")) {
                         release();
                         break;
                     }
-                   
+
                     if(msg.startsWith("[")){
                         System.out.println(">>> "+msg);
                         msg=msg.replace("=", ":");
@@ -107,7 +107,7 @@ public class RegionConnector {
                         while(iterator1.hasNext()){
                             String key = (String)iterator1.next();
                             System.out.print(key+"|");
-                        }
+                        }    
                          System.out.print("\n");
                         // System.out.print("--------------------\n");
                         for(int i=0;i<jsonArray.length();i++){
@@ -119,7 +119,7 @@ public class RegionConnector {
                             }
                             System.out.println("|");
                         }
-                    } 
+                    }
                     else if(msg.contains("Table")& msg.contains("not exist")){
                         String[] msgstr=msg.split(" ");
                         for(int i=0;i<msgstr.length;i++){
@@ -133,17 +133,17 @@ public class RegionConnector {
                     }
                     else    System.out.println(">>> "+msg);
                 }
-                
-                           
+
+
             } catch (IOException e) {
                  release();
-                 
+
             }
-           
+
         }
-        
+
         @Override
-        public void run() {	
+        public void run() {
             while(isRunning) {
                 receive();
             }
