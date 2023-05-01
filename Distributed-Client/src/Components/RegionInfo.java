@@ -16,4 +16,8 @@ public class RegionInfo {
     public String Port() {
         return port;
     }
+
+    public String toString() {
+        return ip + ":" + port;
+    }
 }
