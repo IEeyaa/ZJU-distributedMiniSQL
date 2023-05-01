@@ -1,22 +1,23 @@
+package Components;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Cache {
-    private Map<String, String> cache;
+    private Map<String, RegionInfo> cache;
 
     public Cache() {
         cache = new HashMap<>();
     }
 
-    public String get(String tableName) {
+    public RegionInfo get(String tableName) {
         return cache.get(tableName);
     }
 
-    public String remove(String tableName) {
+    public RegionInfo remove(String tableName) {
         return cache.remove(tableName);
     }
 
-    public String put(String tableName, String regionServerInfo) {
+    public RegionInfo put(String tableName, RegionInfo regionServerInfo) {
         return cache.put(tableName, regionServerInfo);
     }
 }
