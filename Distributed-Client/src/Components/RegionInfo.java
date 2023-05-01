@@ -2,9 +2,9 @@ package Components;
 
 public class RegionInfo {
     private String ip;
-    private String port;
+    private int port;
 
-    public RegionInfo(String ip, String port) {
+    public RegionInfo(String ip, int port) {
         this.ip = ip;
         this.port = port;
     }
@@ -13,7 +13,7 @@ public class RegionInfo {
         return ip;
     }
 
-    public String Port() {
+    public int Port() {
         return port;
     }
 
