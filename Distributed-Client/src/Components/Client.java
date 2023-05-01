@@ -2,8 +2,6 @@ package Components;
 
 import java.util.Scanner;
 
-import javax.print.attribute.standard.Media;
-
 import Util.Utils;
 import Connection.Connection;
 
