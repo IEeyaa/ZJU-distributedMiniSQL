@@ -83,17 +83,32 @@ public class Client {
                 region.close();
                 break;
             } else {
+                // if exists in the cache.
                 RegionInfo regioninfo = cache.get(TABLE);
                 if (regioninfo != null) {
-
+                    // connect to the Region and send the SQL
+                    region = new Connection(regioninfo.IP(), regioninfo.Port(), "region");
+                    region.send(SQL);
+                } else {
+                    // Send the table name to the Master
+                    master.send("<get>" + TABLE);
+                    // obtain the Region
+                    String res = master.receive();
+                    String[] parts = res.split(":");
+                    if (parts.length != 2)
+                        continue;
+                    regioninfo = new RegionInfo(parts[0], Integer.parseInt(parts[1]));
+                    // update the cache
+                    cache.put(TABLE, regioninfo);
+                    // connect to the Region and send the SQL
+                    region = new Connection(regioninfo.IP(), regioninfo.Port(), "region");
+                    region.send(SQL);
                 }
-
             }
             // Retrieve the Region’s response and display it.
             String res = region.receive();
             System.out.println(res);
+            region.close();
         }
-
     }
-
 }

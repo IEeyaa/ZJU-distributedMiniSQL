@@ -1,7 +1,10 @@
 package App;
 
+import Components.Client;
+
 public class App {
     public static void main(String[] args) throws Exception {
-        System.out.println("Hello, World!");
+        Client client = new Client();
+        client.run();
     }
 }
