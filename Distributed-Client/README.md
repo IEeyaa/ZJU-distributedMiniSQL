@@ -18,15 +18,15 @@
 
 - client &rarr; master
 
-  |      req       |   res   |
-  | :------------: | :-----: |
-  |     <quit>     |  null   |
-  |    <create>    | ip:port |
-  | <get>tablename | ip:port |
+  |       req       |   res   |
+  | :-------------: | :-----: |
+  |     \<quit>     |  null   |
+  |    \<create>    | ip:port |
+  | \<get>tablename | ip:port |
 
 - client &rarr; region
 
-  |   req   |  res   |
-  | :-----: | :----: |
-  |   SQL   | result |
-  | <close> |  null  |
+  |   req    |  res   |
+  | :------: | :----: |
+  |   SQL    | result |
+  | \<close> |  null  |
