@@ -1,6 +1,9 @@
 package Components;
 
 import java.util.Scanner;
+
+import javax.print.attribute.standard.Media;
+
 import Util.Utils;
 import Connection.Connection;
 
@@ -57,12 +60,20 @@ public class Client {
             String SQL = sb.toString();
             String METHOD = Utils.getMethod(SQL);
             String TABLE = Utils.getTables(SQL);
-            if (METHOD == null || TABLE == null) {
-                continue;
-            }
 
             // For different methods
-            if (METHOD.equals("create")) {
+            if (METHOD.equals("quit;")) {
+                // If it is a quit operation, close the client.
+                scanner.close();
+                master.send("<quit>");
+                master.close();
+                break;
+            } else if (METHOD.equals("cache;")) {
+                System.out.println(cache.toString());
+                continue;
+            } else if (TABLE == null) {
+                continue;
+            } else if (METHOD.equals("create")) {
                 // If it is a create operation, send a create request to the Master
                 master.send("<create>");
                 // obtain the Region
@@ -75,19 +86,17 @@ public class Client {
                 cache.put(TABLE, regioninfo);
                 // connect to the Region and send the SQL
                 region = new Connection(regioninfo.IP(), regioninfo.Port(), "region");
+                if (!region.connect())
+                    return;
                 region.send(SQL);
-            } else if (METHOD.equals("quit;")) {
-                // If it is a quit operation, close the client.
-                scanner.close();
-                master.close();
-                region.close();
-                break;
             } else {
                 // if exists in the cache.
                 RegionInfo regioninfo = cache.get(TABLE);
                 if (regioninfo != null) {
                     // connect to the Region and send the SQL
                     region = new Connection(regioninfo.IP(), regioninfo.Port(), "region");
+                    if (!region.connect())
+                        return;
                     region.send(SQL);
                 } else {
                     // Send the table name to the Master
@@ -102,13 +111,18 @@ public class Client {
                     cache.put(TABLE, regioninfo);
                     // connect to the Region and send the SQL
                     region = new Connection(regioninfo.IP(), regioninfo.Port(), "region");
+                    if (!region.connect())
+                        return;
                     region.send(SQL);
                 }
             }
             // Retrieve the Region’s response and display it.
             String res = region.receive();
             System.out.println(res);
+            // close the connection
+            region.send("<close>");
             region.close();
+            region = null;
         }
     }
 }
