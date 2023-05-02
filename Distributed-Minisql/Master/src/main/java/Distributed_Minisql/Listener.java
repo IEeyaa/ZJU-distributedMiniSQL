@@ -29,6 +29,7 @@ public class Listener {
                 Socket socket = s.accept();
                 SocketT thread = new SocketT(socket, table);
                 table.addSocket(socket.getInetAddress().getHostAddress(), thread);
+                System.out.println("Establish a socket with " + socket.getInetAddress().getHostAddress());
                 thread.run();
             }
         }finally{

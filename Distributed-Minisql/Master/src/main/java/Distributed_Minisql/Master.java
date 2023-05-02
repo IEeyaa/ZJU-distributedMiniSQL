@@ -17,6 +17,7 @@ public class Master {
         // zookeeperManager = new ZookeeperManager(tableManager);
         // socketManager = new SocketManager(PORT, tableManager);
         table = new Table();
+        // table.addRegion("127.0.0.1");
         listener = new Listener(table);
     }
 

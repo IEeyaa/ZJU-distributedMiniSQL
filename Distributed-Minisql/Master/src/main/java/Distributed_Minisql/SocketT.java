@@ -24,8 +24,8 @@ public class SocketT extends Thread {
                 new InputStreamReader(
                     socket.getInputStream()));
             output = new BufferedWriter(
-                        new OutputStreamWriter(
-                            socket.getOutputStream()));
+                    new OutputStreamWriter(
+                        socket.getOutputStream()));
         }catch(IOException e){
             System.out.println(e);
         }
@@ -39,8 +39,11 @@ public class SocketT extends Thread {
     @Override
     public void run(){
         try{
-            String str = input.readLine();
-            process(str);
+            while(true){
+                String str = input.readLine();
+                System.out.println("Read cmd from "+ socket.getInetAddress().getHostAddress() + ":" + str);
+                process(str);
+            }
         }catch(IOException e){
             System.out.println("Connection broken with "+ socket.getInetAddress().getHostAddress());
         }
@@ -53,37 +56,31 @@ public class SocketT extends Thread {
      */
     private void process(String Cmd){
         String[] cmds = Cmd.split(" ");
-        if(cmds.length >= 0 && cmds[0].equals("Successfully")){
-            if(cmds.length >= 3 && cmds[1].equals("create")){
+        if(cmds.length >= 1 && cmds[0].equalsIgnoreCase("Successfully")){
+            if(cmds.length >= 4 && cmds[1].equalsIgnoreCase("create")){
                 table.createSuccess(cmds[2], cmds[3]);
-            }else if(cmds.length >= 3 && cmds[1].equals("drop")){
+            }else if(cmds.length >= 3 && cmds[1].equalsIgnoreCase("drop")){
                 table.dropSuccess(cmds[2], cmds[3]);
             }
-            return;
-        }else if(cmds.length >= 0 && cmds[0].equals("Create")){
+        }else if(cmds.length >= 1 && cmds[0].equalsIgnoreCase("Create")){
             try {
                 output.write(table.createRequest());
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            return;
         }else{
-            boolean flag = false;
-            for(String str : cmds){
-                if(str.equalsIgnoreCase("where")){
-                    flag = true;
-                }else if(flag){
-                    try {
-                        output.write(table.normalRequest(str));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    return;
+            cmds = Cmd.split(":");
+            if(cmds.length >= 2 && cmds[0].equals("search")){
+                System.out.println("Reply: "+"<ip>:"+cmds[1]+":"+table.normalRequest(cmds[1]));
+                try {
+                    output.write("<ip>:"+cmds[1]+":"+table.normalRequest(cmds[1]));
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
         }
         try {
-            output.write("Cann't find the table");
+            output.newLine();
         } catch (IOException e) {
             e.printStackTrace();
         }

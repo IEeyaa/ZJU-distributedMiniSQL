@@ -6,15 +6,15 @@ import java.util.ArrayList;
 public class Table {
 
     // table -> main region
-    public HashMap<String, String> tableToMainIp = new HashMap<>();
+    private HashMap<String, String> tableToMainIp = new HashMap<>();
     // table -> slave region
-    // public HashMap<String, String> tableToSlaveIp = new HashMap<>();
+    // private HashMap<String, String> tableToSlaveIp = new HashMap<>();
     // ip -> socket
-    public HashMap<String, SocketT> ipToSocket = new HashMap<>();
+    private HashMap<String, SocketT> ipToSocket = new HashMap<>();
     // ip -> tables
-    public HashMap<String, ArrayList<String>> ipToTables = new HashMap<>();
+    private HashMap<String, ArrayList<String>> ipToTables = new HashMap<>();
     // a list of all region servers' ip
-    public ArrayList<String> regions = new ArrayList<>();
+    private ArrayList<String> regions = new ArrayList<>();
     
     /*
      * Function: Select a region server to handle the create table request
@@ -30,6 +30,7 @@ public class Table {
                 ip = i;
             }
         }
+        System.out.println("select "+ ip +" to create");
         return ip;
     }
 
@@ -39,7 +40,12 @@ public class Table {
      * Output: a string of the region server's ip
      */
     public String normalRequest(String tableName){
-        return tableToMainIp.get(tableName);
+        String ip = tableToMainIp.get(tableName);
+        if(ip != null){
+            System.out.println("head "+ip+" to work");
+            return tableToMainIp.get(tableName);
+        }
+        return "unreachable";
     }
 
     /*
@@ -58,6 +64,7 @@ public class Table {
             a.add(tableName);
             ipToTables.put(regionIp, a);
         }
+        System.out.println("Successfully create");
     }
 
     /*
@@ -70,6 +77,7 @@ public class Table {
     public void dropSuccess(String tableName, String regionIp){
         tableToMainIp.remove(tableName, regionIp);
         ipToTables.get(regionIp).remove(tableName);
+        System.out.println("Successfully drop");
     }
 
     /*
@@ -81,5 +89,15 @@ public class Table {
      */
     public void addSocket(String ip, SocketT socket){
         ipToSocket.put(ip, socket);
+    }
+
+    /*
+     * Function: Add a region into record
+     * Input: - ip: a string of region's ip
+     * Output: none
+     */
+    public void addRegion(String ip){
+        regions.add(ip);
+        ipToTables.put(ip, new ArrayList<String>());
     }
 }
