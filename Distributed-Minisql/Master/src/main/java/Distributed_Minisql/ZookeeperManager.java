@@ -72,7 +72,7 @@ public class ZookeeperManager implements Runnable{
         System.out.println("节点断开连接:"+ip_address);
         List<String> AllTable = tableManager.ipToTables.get(ip_address);
         tableManager.ipToTables.remove(ip_address);
-        tableManager.serverList.remove(ip_address);
+        // tableManager.serverList.remove(ip_address);
         tableManager.ipToSocket.remove(ip_address);
         // 遍历所有该ip的服务器存在的表，分主本和副本情况考虑，选择另一台服务器用于
         for(String table: AllTable){
