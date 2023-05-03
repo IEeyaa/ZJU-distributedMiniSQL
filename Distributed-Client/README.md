@@ -18,11 +18,12 @@
 
 - client &rarr; master
 
-  |       req       |   res   |
-  | :-------------: | :-----: |
-  |     \<quit>     |  null   |
-  |    \<create>    | ip:port |
-  | \<get>tablename | ip:port |
+  |       req       |              res               |
+  | :-------------: | :----------------------------: |
+  |     \<quit>     |              null              |
+  |    \<create>    |            ip:port             |
+  | \<get>tablename |            ip:port             |
+  |     \<show>     | {<br>table1,<br/>table2,<br/>} |
 
 - client &rarr; region
 

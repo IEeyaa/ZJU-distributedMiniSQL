@@ -30,8 +30,8 @@ public class Client {
 
     public void GetMaster() {
         // TODO: connect to zookeeper and get master info
-        MasterIP = "127.0.0.1";
-        MasterPort = 8090;
+        MasterIP = "10.181.194.248";
+        MasterPort = 8086;
     }
 
     public void run() {
@@ -70,6 +70,10 @@ public class Client {
                 System.out.println(cache.toString());
                 continue;
             } else if (TABLE == null) {
+                // Send SQL to the master directly
+                master.send(SQL);
+                String res = master.receive();
+                System.out.println(res);
                 continue;
             } else if (METHOD.equals("create")) {
                 // If it is a create operation, send a create request to the Master
