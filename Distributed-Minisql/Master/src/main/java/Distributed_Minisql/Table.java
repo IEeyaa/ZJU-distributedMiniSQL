@@ -30,7 +30,7 @@ public class Table {
                 ip = i;
             }
         }
-        System.out.println("select "+ ip +" to create");
+        // System.out.println("select "+ ip +" to create");
         return ip;
     }
 
@@ -56,7 +56,7 @@ public class Table {
      * Output: none
      */
     public void createSuccess(String tableName, String regionIp){
-        tableToMainIp.put(tableName, regionIp);
+        tableToMainIp.put(tableName, regionIp+":8080");                 //
         if(ipToTables.containsKey(regionIp)){
             ipToTables.get(regionIp).add(tableName);
         }else{
