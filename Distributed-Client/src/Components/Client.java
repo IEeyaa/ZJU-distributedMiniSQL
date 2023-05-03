@@ -70,10 +70,7 @@ public class Client {
                 System.out.println(cache.toString());
                 continue;
             } else if (TABLE == null) {
-                // Send SQL to the master directly
-                master.send(SQL);
-                String res = master.receive();
-                System.out.println(res);
+                // TODO: "show tables" command
                 continue;
             } else if (METHOD.equals("create")) {
                 // If it is a create operation, send a create request to the Master
@@ -91,6 +88,9 @@ public class Client {
                 if (!region.connect())
                     return;
                 region.send(SQL);
+            } else if (METHOD.equals("drop")) {
+                // TODO: handle cache drop
+                continue;
             } else {
                 // if exists in the cache.
                 RegionInfo regioninfo = cache.get(TABLE);
