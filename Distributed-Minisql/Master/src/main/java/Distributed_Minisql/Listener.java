@@ -30,7 +30,7 @@ public class Listener {
                 SocketT thread = new SocketT(socket, table);
                 table.addSocket(socket.getInetAddress().getHostAddress(), thread);
                 System.out.println("Establish a socket with " + socket.getInetAddress().getHostAddress());
-                thread.run();
+                thread.start();
             }
         }finally{
             s.close();

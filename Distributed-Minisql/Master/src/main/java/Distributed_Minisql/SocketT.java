@@ -41,6 +41,7 @@ public class SocketT extends Thread {
         try{
             while(true){
                 String str = input.readLine();
+                if(str == null) continue;
                 System.out.println("Read cmd from "+ socket.getInetAddress().getHostAddress() + ":" + str);
                 process(str);
             }
@@ -56,24 +57,23 @@ public class SocketT extends Thread {
      */
     private void process(String Cmd){
         String[] cmds = Cmd.split(" ");
-        if(cmds.length >= 1 && cmds[0].equalsIgnoreCase("Successfully")){
-            if(cmds.length >= 4 && cmds[1].equalsIgnoreCase("create")){
-                table.createSuccess(cmds[2], cmds[3]);
-            }else if(cmds.length >= 3 && cmds[1].equalsIgnoreCase("drop")){
-                table.dropSuccess(cmds[2], cmds[3]);
-            }
-        }else if(cmds.length >= 1 && cmds[0].equalsIgnoreCase("Create")){
+        if(Cmd.startsWith("(CREATE)")){
+            System.out.println(Cmd);
+            table.createSuccess(Cmd.split("\\)")[1], socket.getInetAddress().getHostAddress());
+        }else if(Cmd.startsWith("DROP")){
+            table.dropSuccess(Cmd.split(")")[1], socket.getInetAddress().getHostAddress());
+        }else if(cmds.length >= 1 && cmds[0].equalsIgnoreCase("<Create>")){
             try {
+                System.out.println("Reply: "+table.createRequest());
                 output.write(table.createRequest());
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }else{
-            cmds = Cmd.split(":");
-            if(cmds.length >= 2 && cmds[0].equals("search")){
-                System.out.println("Reply: "+"<ip>:"+cmds[1]+":"+table.normalRequest(cmds[1]));
+            if(Cmd.startsWith("<get>")){
+                System.out.println("Reply: "+table.normalRequest(Cmd.split(">")[1]));
                 try {
-                    output.write("<ip>:"+cmds[1]+":"+table.normalRequest(cmds[1]));
+                    output.write(table.normalRequest(Cmd.split(">")[1]));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -81,6 +81,7 @@ public class SocketT extends Thread {
         }
         try {
             output.newLine();
+            output.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
