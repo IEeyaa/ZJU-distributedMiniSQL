@@ -1,25 +1,25 @@
-package Distributed_Minisql;
+package components;
 
 import java.util.HashMap;
 import java.util.ArrayList;
 
 public class Table {
 
-    // table -> main region
+    // table -> main region's ip and port
     private HashMap<String, String> tableToMainIp = new HashMap<>();
-    // table -> slave region
+    // table -> slave region's ip and port
     // private HashMap<String, String> tableToSlaveIp = new HashMap<>();
-    // ip -> socket
+    // ip and port -> socket
     private HashMap<String, SocketT> ipToSocket = new HashMap<>();
-    // ip -> tables
+    // ip and port -> tables
     private HashMap<String, ArrayList<String>> ipToTables = new HashMap<>();
-    // a list of all region servers' ip
+    // a list of all region servers' ip and port
     private ArrayList<String> regions = new ArrayList<>();
     
     /*
      * Function: Select a region server to handle the create table request
      * Input: none
-     * Ouput: a string of the selected region server's ip
+     * Ouput: a string of the selected region server's ip and port
      */
     public String createRequest(){
         int min = Integer.MAX_VALUE;
@@ -37,13 +37,13 @@ public class Table {
     /*
      * Funtion: Find the region server who shall handle the request
      * Input: - tableName: a string of the table's name, which comes from the request
-     * Output: a string of the region server's ip
+     * Output: a string of the region server's ip and port
      */
     public String normalRequest(String tableName){
         String ip = tableToMainIp.get(tableName);
         if(ip != null){
-            System.out.println("head "+ip+" to work");
-            return tableToMainIp.get(tableName);
+            // System.out.println("head "+ip+" to work");
+            return ip;
         }
         return "unreachable";
     }
@@ -52,11 +52,11 @@ public class Table {
      * Function: Update metadata after the region server successfully handle the create request
      * Input:
      *  - tableName: a string of the table's name, which is newly created
-     *  - regionIp: a string of the region server's ip, who just successfully handle the create request
+     *  - regionIp: a string of the region server's ip and port, who just successfully handle the create request
      * Output: none
      */
     public void createSuccess(String tableName, String regionIp){
-        tableToMainIp.put(tableName, regionIp+":8080");                 //
+        tableToMainIp.put(tableName, regionIp);
         if(ipToTables.containsKey(regionIp)){
             ipToTables.get(regionIp).add(tableName);
         }else{
@@ -71,7 +71,7 @@ public class Table {
      * Function: Update metadata after the region server successfully handle the drop request
      * Input:
      *  - tableName: a string of the table's name, which is just droped
-     *  - regionIp: a string of the region server's ip, who just successfully handle the drop request
+     *  - regionIp: a string of the region server's ip and port, who just successfully handle the drop request
      * Output: none
      */
     public void dropSuccess(String tableName, String regionIp){
@@ -83,7 +83,7 @@ public class Table {
     /*
      * Function: Record the relationship between the ip and socket
      * Input:
-     *  - ip: a string of ip
+     *  - ip: a string of ip and port
      *  - socket: a SocketThread object
      * Output: none
      */
@@ -93,11 +93,26 @@ public class Table {
 
     /*
      * Function: Add a region into record
-     * Input: - ip: a string of region's ip
+     * Input: - ip: a string of region's ip and port
      * Output: none
      */
     public void addRegion(String ip){
         regions.add(ip);
         ipToTables.put(ip, new ArrayList<String>());
+        System.out.println("Add a new region:"+ip);
+    }
+
+    /*
+     * Function: get all tables in the database
+     * Input: none
+     * Output: a string of all tables
+     */
+    public String getTables() {
+        String ans = "{\n";
+        for(String table : tableToMainIp.keySet()){
+            ans += table + "\n";
+        }
+        ans += "}";
+        return ans;
     }
 }

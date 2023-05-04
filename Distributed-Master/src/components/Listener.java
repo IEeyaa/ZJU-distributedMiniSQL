@@ -1,4 +1,4 @@
-package Distributed_Minisql;
+package components;
 
 import java.io.IOException;
 import java.net.ServerSocket;
