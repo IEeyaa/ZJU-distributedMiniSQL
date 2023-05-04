@@ -2,7 +2,7 @@
 
 孔郁杰
 
-## 第一阶段
+## 第一阶段（5.3）
 
 ##### 工作流程：
 
@@ -31,3 +31,13 @@
   | :------: | :----: |
   |   SQL    | result |
   | \<close> |  null  |
+
+## 第二阶段
+
+zookeeper实现
+
+- client &rarr; zookeeper
+
+|    req    |   res   |
+| :-------: | :-----: |
+| \$master$ | ip:port |
