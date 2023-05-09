@@ -27,7 +27,7 @@ public class Listener {
         try{
             while(true){
                 Socket socket = s.accept();
-                SocketT thread = new SocketT(socket, table);
+                SocketThread thread = new SocketThread(socket, table);
                 table.addSocket(socket.getInetAddress().getHostAddress(), thread);
                 System.out.println("Establish a socket with " + socket.getInetAddress().getHostAddress());
                 thread.start();

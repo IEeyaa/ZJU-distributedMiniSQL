@@ -10,7 +10,7 @@ public class Table {
     // table -> slave region's ip and port
     // private HashMap<String, String> tableToSlaveIp = new HashMap<>();
     // ip and port -> socket
-    private HashMap<String, SocketT> ipToSocket = new HashMap<>();
+    private HashMap<String, SocketThread> ipToSocket = new HashMap<>();
     // ip and port -> tables
     private HashMap<String, ArrayList<String>> ipToTables = new HashMap<>();
     // a list of all region servers' ip and port
@@ -87,7 +87,7 @@ public class Table {
      *  - socket: a SocketThread object
      * Output: none
      */
-    public void addSocket(String ip, SocketT socket){
+    public void addSocket(String ip, SocketThread socket){
         ipToSocket.put(ip, socket);
     }
 
@@ -100,6 +100,17 @@ public class Table {
         regions.add(ip);
         ipToTables.put(ip, new ArrayList<String>());
         System.out.println("Add a new region:"+ip);
+    }
+
+    /*
+     * Function: Remove a region from record (don't consider recovery at least now)
+     * Input: - ip: a string of region server's ip and port
+     * Output: none
+     */
+    public void removeRegion(String ip){
+        regions.remove(ip);
+        ipToTables.remove(ip);
+        System.out.println("Remove a region:"+ip);
     }
 
     /*

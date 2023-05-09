@@ -3,7 +3,7 @@ package components;
 import java.net.Socket;
 import java.io.*;
 
-public class SocketT extends Thread {
+public class SocketThread extends Thread {
     
     Socket socket;
     String ip;
@@ -11,6 +11,7 @@ public class SocketT extends Thread {
     BufferedReader input = null;
     BufferedWriter output = null;
     boolean running = true;
+    long lasttime;
 
     /*
      * Function: a constructor with a Table object and a socket
@@ -18,10 +19,12 @@ public class SocketT extends Thread {
      *  - socket: a Socket object
      *  - table: a Table object that needs to be record
      */
-    public SocketT(Socket socket, Table table){
+    public SocketThread(Socket socket, Table table){
         this.socket = socket;
         this.table = table;
-        ip = socket.getInetAddress().getHostAddress() + socket.getPort();
+        ip = socket.getInetAddress().getHostAddress() + ":" + socket.getPort();
+        lasttime = System.currentTimeMillis();
+        new HeartBeat(this).start();
         try{
             input = new BufferedReader(
                 new InputStreamReader(
@@ -100,7 +103,16 @@ public class SocketT extends Thread {
                 String[] cmds = Cmd.split("\\)");
                 if(cmds.length >= 2)
                     table.dropSuccess(cmds[1], ip);                
+            }else if(Cmd.startsWith("(Heartbeat)")){
+                lasttime = System.currentTimeMillis();
             }
+        }
+    }
+
+    public void check() {
+        if(System.currentTimeMillis() - lasttime > 10000){
+            table.removeRegion(ip);
+            running = false;
         }
     }
 }
