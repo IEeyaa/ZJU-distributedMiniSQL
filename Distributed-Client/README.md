@@ -30,7 +30,6 @@
   |   req    |  res   |
   | :------: | :----: |
   |   SQL    | result |
-  | \<close> |  null  |
 
 ## 第二阶段
 
@@ -40,4 +39,4 @@ zookeeper实现
 
 |    req    |   res   |
 | :-------: | :-----: |
-| \$master$ | ip:port |
+| client | ip:port |
