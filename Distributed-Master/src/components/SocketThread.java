@@ -45,7 +45,7 @@ public class SocketThread extends Thread {
             output.write(msg);
             output.newLine();
             output.flush();
-            System.out.println("Reply to " + ip + ":" + msg);
+            System.out.println("Reply to " + ip + msg);
         }catch(IOException e){
             e.printStackTrace();
         }
@@ -91,8 +91,8 @@ public class SocketThread extends Thread {
                 send(table.getTables());
             }
         }else if(Cmd.startsWith("(")){
-            if(Cmd.equalsIgnoreCase("(hello)")){
-                ip += Cmd.split(")")[1];
+            if(Cmd.startsWith("(hello)")){
+                ip += Cmd.split("\\)")[1];
                 table.addRegion(ip);
                 lasttime = System.currentTimeMillis();
                 new HeartBeat(this).start();
@@ -111,7 +111,7 @@ public class SocketThread extends Thread {
     }
 
     public void check() {
-        if(System.currentTimeMillis() - lasttime > 10000){
+        if(System.currentTimeMillis() - lasttime > 20000){
             table.removeRegion(ip);
             running = false;
         }

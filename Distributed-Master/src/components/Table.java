@@ -119,9 +119,9 @@ public class Table {
      * Output: a string of all tables
      */
     public String getTables() {
-        String ans = "{\n";
+        String ans = "{$";
         for(String table : tableToMainIp.keySet()){
-            ans += table + "\n";
+            ans += table + "$";
         }
         ans += "}";
         return ans;

@@ -12,7 +12,7 @@ public class HeartBeat extends Thread{
     public void run(){
         while(thread.running){
             try {
-                sleep(12000);
+                sleep(22000);
                 thread.check();
             } catch (InterruptedException e) {
                 e.printStackTrace();
