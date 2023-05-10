@@ -10,11 +10,10 @@ public class HeartBeat extends Thread{
 
     @Override
     public void run(){
-        while(true){
+        while(thread.running){
             try {
-                sleep(10000);
+                sleep(12000);
                 thread.check();
-                
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

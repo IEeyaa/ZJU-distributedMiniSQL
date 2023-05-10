@@ -22,9 +22,7 @@ public class SocketThread extends Thread {
     public SocketThread(Socket socket, Table table){
         this.socket = socket;
         this.table = table;
-        ip = socket.getInetAddress().getHostAddress() + ":" + socket.getPort();
-        lasttime = System.currentTimeMillis();
-        new HeartBeat(this).start();
+        ip = socket.getInetAddress().getHostAddress() + ":";
         try{
             input = new BufferedReader(
                 new InputStreamReader(
@@ -64,7 +62,7 @@ public class SocketThread extends Thread {
             while(running){
                 String str = input.readLine();
                 if(str == null) continue;
-                System.out.println("Read cmd from "+ socket.getInetAddress().getHostAddress() + ":" + str);
+                System.out.println("Read cmd from "+ ip + ":" + str);
                 process(str);
             }
             socket.close();
@@ -94,7 +92,10 @@ public class SocketThread extends Thread {
             }
         }else if(Cmd.startsWith("(")){
             if(Cmd.equalsIgnoreCase("(hello)")){
+                ip += Cmd.split(")")[1];
                 table.addRegion(ip);
+                lasttime = System.currentTimeMillis();
+                new HeartBeat(this).start();
             }else if(Cmd.startsWith("(CREATE)")){
                 String[] cmds = Cmd.split("\\)");
                 if(cmds.length >= 2)
@@ -103,7 +104,7 @@ public class SocketThread extends Thread {
                 String[] cmds = Cmd.split("\\)");
                 if(cmds.length >= 2)
                     table.dropSuccess(cmds[1], ip);                
-            }else if(Cmd.startsWith("(Heartbeat)")){
+            }else if(Cmd.startsWith("(ALIVE)")){
                 lasttime = System.currentTimeMillis();
             }
         }
