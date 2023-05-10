@@ -194,7 +194,7 @@ public class Interpreter {
         Table table = new Table(tableName, primaryName, attrVec); // create table
         API.create_table(tableName, table);
         sql_execute_result = "-->Create table " + tableName + " successfully";
-        Region.master_connector.send("(CREATE)" + tableName);
+        Region.masterThread.master_connector.send("(CREATE)" + tableName);
     }
 
     private static void parse_drop_table(String statement) throws Exception {
@@ -207,7 +207,7 @@ public class Interpreter {
         String tableName = tokens[2]; // get table name
         API.drop_table(tableName);
         sql_execute_result = "-->Drop table " + tableName + " successfully";
-        Region.master_connector.send("(DROP)" + tableName);
+        Region.masterThread.master_connector.send("(DROP)" + tableName);
     }
 
     private static void parse_create_index(String statement) throws Exception {
@@ -476,6 +476,6 @@ class Utils {
             }
             list.add(inputParams);
         }
-        return list.toString() + "\n-->Query ok! " + tab.size() + " rows are selected";
+        return list.toString() + "$-->Query ok! " + tab.size() + " rows are selected";
     }
 }

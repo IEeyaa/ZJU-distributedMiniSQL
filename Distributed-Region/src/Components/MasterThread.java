@@ -8,19 +8,22 @@ import java.util.TimerTask;
 
 public class MasterThread implements Runnable {
 
-    private Connect master_connector, zookeeper_connector;
-    private static long alive_time = 1000L;
+    public Connect master_connector;
+    private Connect zookeeper_connector;
+    private static long alive_time = 10000L;
     private int ZookeeperPort;
     private String ZookeeperIP;
     private int port;
     private String ip;
+    private int regionListenPort;
 
     // 结尾符
     static String endCode = "";
 
-    public MasterThread(String ip, int port) {
+    public MasterThread(String ip, int port, int regionListenPort) {
         this.ZookeeperIP = ip;
         this.ZookeeperPort = port;
+        this.regionListenPort = regionListenPort;
     }
 
     public void run() {
@@ -34,15 +37,20 @@ public class MasterThread implements Runnable {
                 if (result != null) {
                     System.out.println(result);
                     String[] parts = result.split(":");
+                    if (parts[0] == "null") {
+                        continue;
+                    }
                     this.ip = parts[0];
                     this.port = Integer.parseInt(parts[1]);
                     zookeeper_connector.close();
                     break;
                 }
             }
+            System.out.println(String.format("master ip get %s:%d", ip, port));
             master_connector = new Connect(ip, port, "master");
             master_connector.connect();
-            master_connector.send("hello");
+            System.out.println("connect master OK");
+            master_connector.send(String.format(("(hello)%d"), regionListenPort));
 
             // 创建定时器
             Timer timer = new Timer();
