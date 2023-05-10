@@ -1,17 +1,22 @@
 package Components;
 
 import java.util.Scanner;
+import java.util.logging.MemoryHandler;
 
 import Util.Utils;
 import Connection.Connection;
 
 public class Client {
-    private String MasterIP = "";
+    final private String ZookeeperIP = "10.162.90.213";
+    final private int ZookeeperPort = 12345;
+
+    private String MasterIP = null;
     private int MasterPort = -1;
 
     private Cache cache = null;
     private Scanner scanner = null;
 
+    private Connection zookeeper = null;
     private Connection master = null;
     private Connection region = null;
 
@@ -29,9 +34,22 @@ public class Client {
     }
 
     public void GetMaster() {
-        // TODO: connect to zookeeper and get master info
-        MasterIP = "10.181.194.248";
-        MasterPort = 8086;
+        zookeeper = new Connection(ZookeeperIP, ZookeeperPort, "zookeeper");
+        if (!zookeeper.connect())
+            return;
+        zookeeper.send("client");
+
+        String res = zookeeper.receive();
+        String[] parts = res.split(":");
+        if (parts.length != 2) {
+            System.out.println(res);
+            return;
+        }
+        MasterIP = parts[0];
+        MasterPort = Integer.parseInt(parts[1]);
+        zookeeper.close();
+
+        System.out.println("Get Master : " + res);
     }
 
     public void run() {
@@ -69,8 +87,12 @@ public class Client {
             } else if (METHOD.equals("cache;")) {
                 System.out.println(cache.toString());
                 continue;
+            } else if (METHOD.equals("show")) {
+                master.send("<show>");
+                String res = master.receive();
+                System.out.println(res);
+                continue;
             } else if (TABLE == null) {
-                // TODO: "show tables" command
                 continue;
             } else if (METHOD.equals("create")) {
                 // If it is a create operation, send a create request to the Master
@@ -88,9 +110,6 @@ public class Client {
                 if (!region.connect())
                     return;
                 region.send(SQL);
-            } else if (METHOD.equals("drop")) {
-                // TODO: handle cache drop
-                continue;
             } else {
                 // if exists in the cache.
                 RegionInfo regioninfo = cache.get(TABLE);
@@ -121,10 +140,9 @@ public class Client {
             // Retrieve the Region’s response and display it.
             String res = region.receive();
             System.out.println(res);
-            // close the connection
-            region.send("<close>");
+            // // close the connection
+            // region.send("<close>");
             region.close();
-            region = null;
         }
     }
 }
