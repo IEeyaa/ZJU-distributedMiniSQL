@@ -1,5 +1,9 @@
 package Components;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Scanner;
 
 import Util.Utils;
@@ -117,9 +121,54 @@ public class Client {
                 String TABLE = Utils.getTables(SQL);
 
                 if (METHOD.equals("source")) {
-                    // TODO: file read
                     String file_path = Utils.getFilePath(SQL);
+                    File sql_file = new File(file_path);
 
+                    // excute each sql of the file
+                    try (BufferedReader fbr = new BufferedReader(new FileReader(sql_file))) {
+                        while (true) {
+                            String line = fbr.readLine();
+                            if (line == null)
+                                break;
+                            sb = new StringBuilder(line);
+                            while (!line.endsWith(";")) {
+                                line = fbr.readLine();
+                                sb.append(line);
+                            }
+
+                            String FILE_SQL = Utils.removeTrailingSemicolon(sb.toString());
+                            String FILE_METHOD = Utils.getMethod(FILE_SQL);
+                            String FILE_TABLE = Utils.getTables(FILE_SQL);
+
+                            if (FILE_METHOD.equals("create")) {
+                                RegionInfo regioninfo = GetRegionInfo("<create>");
+                                cache.put(FILE_TABLE, regioninfo);
+                                region = new Connection(regioninfo.IP(), regioninfo.Port(), "region");
+                                if (!region.connect())
+                                    return;
+                                GetSqlReply(FILE_SQL + ";");
+                                continue;
+                            } else {
+                                RegionInfo regioninfo = cache.get(FILE_TABLE);
+                                if (regioninfo != null) {
+                                    region = new Connection(regioninfo.IP(), regioninfo.Port(), "region");
+                                    if (!region.connect())
+                                        return;
+                                    GetSqlReply(FILE_SQL + ";");
+                                } else {
+                                    regioninfo = GetRegionInfo("<get>" + FILE_TABLE);
+                                    cache.put(FILE_TABLE, regioninfo);
+                                    region = new Connection(regioninfo.IP(), regioninfo.Port(), "region");
+                                    if (!region.connect())
+                                        return;
+                                    GetSqlReply(FILE_SQL + ";");
+                                }
+                                continue;
+                            }
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                     continue;
                 } else if (METHOD.equals("create")) {
                     // If it is a create operation, send a create request to the Master
@@ -131,6 +180,7 @@ public class Client {
                     if (!region.connect())
                         return;
                     GetSqlReply(SQL + ";");
+                    continue;
                 } else {
                     RegionInfo regioninfo = cache.get(TABLE);
                     // if exists in the cache.
@@ -152,6 +202,7 @@ public class Client {
                             return;
                         GetSqlReply(SQL + ";");
                     }
+                    continue;
                 }
             }
         }
