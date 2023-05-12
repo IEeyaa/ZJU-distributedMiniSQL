@@ -24,7 +24,7 @@ public class Utils {
                 tables.add(matcher.group(2));
             }
         }
-        return tables.size() == 1 ? tables.get(0).toLowerCase() : null;
+        return tables.size() == 1 ? tables.get(0) : null;
     }
 
     public static String getFilePath(String sql) {
