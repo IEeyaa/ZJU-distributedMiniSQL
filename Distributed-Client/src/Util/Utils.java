@@ -26,4 +26,16 @@ public class Utils {
         }
         return tables.size() == 1 ? tables.get(0).toLowerCase() : null;
     }
+
+    public static String getFilePath(String sql) {
+        String[] parts = sql.split("\\s+");
+        return parts.length == 2 ? parts[1] : null;
+    }
+
+    public static String removeTrailingSemicolon(String str) {
+        if (str != null && str.endsWith(";")) {
+            return str.substring(0, str.length() - 1);
+        }
+        return str;
+    }
 }

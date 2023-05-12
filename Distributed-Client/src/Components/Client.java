@@ -1,7 +1,6 @@
 package Components;
 
 import java.util.Scanner;
-import java.util.logging.MemoryHandler;
 
 import Util.Utils;
 import Connection.Connection;
@@ -33,7 +32,7 @@ public class Client {
         }
     }
 
-    public void GetMaster() {
+    private void GetMaster() {
         zookeeper = new Connection(ZookeeperIP, ZookeeperPort, "zookeeper");
         if (!zookeeper.connect())
             return;
@@ -50,6 +49,28 @@ public class Client {
         zookeeper.close();
 
         System.out.println("Get Master : " + res);
+    }
+
+    private RegionInfo GetRegionInfo(String req) {
+        master.send(req);
+        // obtain the Region
+        String res = master.receive();
+        String[] parts = res.split(":");
+        if (parts.length != 2) {
+            System.err.println("Error: Invalid region " + res);
+            return null;
+        }
+        return new RegionInfo(parts[0], Integer.parseInt(parts[1]));
+    }
+
+    private void GetSqlReply(String sql) {
+        region.send(sql);
+        // Retrieve the Region’s response and display it.
+        String res = region.receive();
+        System.out.println(res);
+        // close the connection
+        region.close();
+        return;
     }
 
     public void run() {
@@ -72,77 +93,67 @@ public class Client {
                     break;
             }
 
-            // Get sql, method name, table name
-            String SQL = sb.toString();
-            String METHOD = Utils.getMethod(SQL);
-            String TABLE = Utils.getTables(SQL);
+            // Get sql
+            String SQL = Utils.removeTrailingSemicolon(sb.toString());
 
-            // For different methods
-            if (METHOD.equals("quit;")) {
+            // single methods
+            if (SQL.equals("quit")) {
                 // If it is a quit operation, close the client.
                 scanner.close();
                 master.send("<quit>");
                 master.close();
                 break;
-            } else if (METHOD.equals("cache;")) {
+            } else if (SQL.equals("cache")) {
                 System.out.println(cache.toString());
                 continue;
-            } else if (METHOD.equals("show")) {
+            } else if (SQL.equals("show")) {
                 master.send("<show>");
                 String res = master.receive();
                 System.out.println(res);
                 continue;
-            } else if (TABLE == null) {
-                continue;
-            } else if (METHOD.equals("create")) {
-                // If it is a create operation, send a create request to the Master
-                master.send("<create>");
-                // obtain the Region
-                String res = master.receive();
-                String[] parts = res.split(":");
-                if (parts.length != 2)
-                    continue;
-                RegionInfo regioninfo = new RegionInfo(parts[0], Integer.parseInt(parts[1]));
-                // update the cache
-                cache.put(TABLE, regioninfo);
-                // connect to the Region and send the SQL
-                region = new Connection(regioninfo.IP(), regioninfo.Port(), "region");
-                if (!region.connect())
-                    return;
-                region.send(SQL);
             } else {
-                // if exists in the cache.
-                RegionInfo regioninfo = cache.get(TABLE);
-                if (regioninfo != null) {
-                    // connect to the Region and send the SQL
-                    region = new Connection(regioninfo.IP(), regioninfo.Port(), "region");
-                    if (!region.connect())
-                        return;
-                    region.send(SQL);
-                } else {
-                    // Send the table name to the Master
-                    master.send("<get>" + TABLE);
-                    // obtain the Region
-                    String res = master.receive();
-                    String[] parts = res.split(":");
-                    if (parts.length != 2)
-                        continue;
-                    regioninfo = new RegionInfo(parts[0], Integer.parseInt(parts[1]));
+                // mutiple methods
+                String METHOD = Utils.getMethod(SQL);
+                String TABLE = Utils.getTables(SQL);
+
+                if (METHOD.equals("source")) {
+                    // TODO: file read
+                    String file_path = Utils.getFilePath(SQL);
+
+                    continue;
+                } else if (METHOD.equals("create")) {
+                    // If it is a create operation, send a create request to the Master
+                    RegionInfo regioninfo = GetRegionInfo("<create>");
                     // update the cache
                     cache.put(TABLE, regioninfo);
                     // connect to the Region and send the SQL
                     region = new Connection(regioninfo.IP(), regioninfo.Port(), "region");
                     if (!region.connect())
                         return;
-                    region.send(SQL);
+                    GetSqlReply(SQL + ";");
+                } else {
+                    RegionInfo regioninfo = cache.get(TABLE);
+                    // if exists in the cache.
+                    if (regioninfo != null) {
+                        // connect to the Region and send the SQL
+                        region = new Connection(regioninfo.IP(), regioninfo.Port(), "region");
+                        if (!region.connect())
+                            return;
+                        GetSqlReply(SQL + ";");
+                    } else {
+                        // not exist
+                        // Send the table name to the Master
+                        regioninfo = GetRegionInfo("<get>" + TABLE);
+                        // update the cache
+                        cache.put(TABLE, regioninfo);
+                        // connect to the Region and send the SQL
+                        region = new Connection(regioninfo.IP(), regioninfo.Port(), "region");
+                        if (!region.connect())
+                            return;
+                        GetSqlReply(SQL + ";");
+                    }
                 }
             }
-            // Retrieve the Region’s response and display it.
-            String res = region.receive();
-            System.out.println(res);
-            // // close the connection
-            // region.send("<close>");
-            region.close();
         }
     }
 }
