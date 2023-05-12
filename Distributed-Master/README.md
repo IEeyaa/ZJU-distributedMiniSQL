@@ -20,3 +20,17 @@ show tables;
 加入zookeeper
 
 process
+
+# 三阶段
+
+### 与region server的通信规范
+
+master->region:
+
++ (copy)ip:port:tablename
++ (sql)statement
+
+region->master:
+
++ (modify)statement
+
