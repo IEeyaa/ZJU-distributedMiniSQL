@@ -23,7 +23,7 @@ process
 
 # 三阶段
 
-### 与region server的通信规范
+### 通信规范
 
 master->region:
 
@@ -34,3 +34,6 @@ region->master:
 
 + (modify)statement
 
+master->zookeeper:
+
++ (remove)ip:port

@@ -9,11 +9,35 @@ import java.net.Socket;
 
 public class ZookeeperThread extends Thread{
 
+    String ip;
+    int port;
     Socket socket;
     BufferedReader input = null;
     BufferedWriter output = null;
 
     ZookeeperThread(String ip, int port){
+        this.ip = ip;
+        this.port = port;
+    }
+
+    /*
+     * Function: to send a message using socket
+     * Input: - msg: the message to be sent
+     * Output: none
+     */
+    public void send(String msg) {
+        try {
+            output.write(msg);
+            output.newLine();
+            output.flush();
+            System.out.println("Send to zookeeper:" + msg);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void run(){
         try{
             socket = new Socket(ip, port);
             input = new BufferedReader(
@@ -25,17 +49,7 @@ public class ZookeeperThread extends Thread{
         }catch(IOException e){
             System.out.println(e);
         }
-    }
-
-    @Override
-    public void run(){
-        try {
-            output.write("region");
-            output.newLine();
-            output.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        send("region");
         System.out.println("Successfully connect to zookeeper");
     }
 }
