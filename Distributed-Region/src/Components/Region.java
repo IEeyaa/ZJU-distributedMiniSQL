@@ -8,7 +8,7 @@ import Connection.Connect;
 import INTERPRETER.API;
 
 public class Region {
-    static final String ZookeeperIP = "10.162.90.213";
+    static final String ZookeeperIP = "127.0.0.1";
     static final int ZookeeperPort = 12345;
     static String endCode = "$end";
     static public MasterThread masterThread;

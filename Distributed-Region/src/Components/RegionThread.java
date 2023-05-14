@@ -13,6 +13,7 @@ public class RegionThread implements Runnable {
     private Socket socket;
     private int port;
     private String ip;
+    private String type;
 
     // 结尾符
     static String endCode = "";
@@ -49,6 +50,7 @@ public class RegionThread implements Runnable {
         StringBuilder statement = new StringBuilder();
         // Region 相关操作
         if (restState.contains("copy:")) {
+            this.type = "region";
             System.out.println("A region has enter, his address is: " + ip + ":" + port);
             String table_name = restState.split(":")[1];
             try {
@@ -73,6 +75,7 @@ public class RegionThread implements Runnable {
         // Client 相关操作
         else {
             System.out.println("A client has enter, his address is: " + ip + ":" + port);
+            this.type = "client";
         }
         // 如果该语句就是一个分号
         if (restState.contains(";")) { // resetLine contains whole statement
