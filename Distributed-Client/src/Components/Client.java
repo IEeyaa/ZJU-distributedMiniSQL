@@ -10,7 +10,7 @@ import Util.Utils;
 import Connection.Connection;
 
 public class Client {
-    final private String ZookeeperIP = "10.162.90.213";
+    final private String ZookeeperIP = "192.168.43.95";
     final private int ZookeeperPort = 12345;
 
     private String MasterIP = null;

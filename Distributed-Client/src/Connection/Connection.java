@@ -1,6 +1,7 @@
 package Connection;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -15,6 +16,8 @@ public class Connection {
     private Socket socket;
     private BufferedReader reader;
     private BufferedWriter writer;
+
+    final int timeout = 2000;
 
     public Connection(String ip, int port, String type) {
         this.type = type;
@@ -40,7 +43,9 @@ public class Connection {
 
     public boolean connect() {
         try {
-            socket = new Socket(ip, port);
+            // socket = new Socket(ip, port);
+            socket = new Socket();
+            socket.connect(new InetSocketAddress(ip, port), timeout);
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             return true;
