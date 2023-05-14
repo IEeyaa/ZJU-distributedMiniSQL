@@ -13,21 +13,18 @@ public class RegionThread implements Runnable {
     private Socket socket;
     private int port;
     private String ip;
-    private String type;
 
     // 结尾符
     static String endCode = "";
 
-    public RegionThread(Socket socket, String type) {
+    public RegionThread(Socket socket) {
         this.socket = socket;
         this.port = socket.getPort();
         this.ip = socket.getInetAddress().getHostAddress();
-        this.type = type;
     }
 
     public void run() {
         try {
-            System.out.println("A " + type + " has enter, his address is: " + ip + ":" + port);
             in = new BufferedReader(new java.io.InputStreamReader(socket.getInputStream()));
             out = new BufferedWriter(new java.io.OutputStreamWriter(socket.getOutputStream()));
             try {
@@ -50,6 +47,33 @@ public class RegionThread implements Runnable {
         int index;
         String line;
         StringBuilder statement = new StringBuilder();
+        // Region 相关操作
+        if (restState.contains("copy:")) {
+            System.out.println("A region has enter, his address is: " + ip + ":" + port);
+            String table_name = restState.split(":")[1];
+            try {
+                // 打开文件
+                FileReader fileReader = new FileReader(table_name);
+                BufferedReader bufferedReader = new BufferedReader(fileReader);
+
+                // 发送文件内容
+                String file_data = "";
+                String temp = "";
+                while ((temp = bufferedReader.readLine()) != null) {
+                    file_data += temp;
+                }
+                // 关闭流
+                bufferedReader.close();
+                fileReader.close();
+                send(file_data);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        // Client 相关操作
+        else {
+            System.out.println("A client has enter, his address is: " + ip + ":" + port);
+        }
         // 如果该语句就是一个分号
         if (restState.contains(";")) { // resetLine contains whole statement
             index = restState.indexOf(";");
@@ -77,29 +101,7 @@ public class RegionThread implements Runnable {
         }
         // after get the whole statement
         String main_sentence = statement.toString().trim().replaceAll("\\s+", " ");
-        // String method = main_sentence.split(":")[0];
-        // switch (method) {
-        // case "execute":
-        // String sql_sentence = main_sentence.split(":")[1];
-        // String result = Interpreter.interpret(sql_sentence);
-        // send(result + endCode);
-        // break;
-        // case "detect":
-        // out.write("alive!");
-        // out.newLine();
-        // out.flush();
-        // break;
-        // case "get_table":
-        // result = Interpreter.interpret("show tables");
-        // send(result + endCode);
-        // break;
-        // case "quit":
-        // send("bye" + endCode);
-        // break;
-        // default:
-        // send("UNKNOWN" + endCode);
-        // break;
-        // }
+        // to minisql
         String result = Interpreter.interpret(main_sentence);
         send(result + endCode);
     }

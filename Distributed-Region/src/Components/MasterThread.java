@@ -5,6 +5,7 @@ import java.net.Socket;
 import Connection.Connect;
 import java.util.Timer;
 import java.util.TimerTask;
+import INTERPRETER.Interpreter;
 
 public class MasterThread implements Runnable {
 
@@ -63,15 +64,55 @@ public class MasterThread implements Runnable {
                 }
             }, 0L, alive_time);
 
-            // 接受请求
+            // 接受请求、发送请求【create drop insert delete】
             while (true) {
                 String result = master_connector.receive();
                 if (result != null) {
+                    String[] parts = result.split("(?<=\\D)(?=\\d)");
+                    if (parts.length < 2) {
+                        continue;
+                    }
+                    String method = parts[0]; // create
+                    String infor = parts[1];
+                    switch (method) {
+                        case "copy":
+                            String[] addresses = infor.split(":");
+                            copy_from_table(addresses[0], Integer.parseInt(addresses[1]), addresses[2]);
+                            break;
+                        case "sql":
+                            String main_sentence = infor.trim().replaceAll("\\s+", " ");
+                            // to minisql
+                            Interpreter.interpret(main_sentence);
+                            break;
+                        default:
+                            break;
+                    }
                     System.out.println(result);
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void copy_from_table(String ip, int port, String tableName) {
+        System.out.println(String.format("copy from %s:%d tablename is %s", ip, port, tableName));
+        // 创建一个新文件
+        File file = new File(tableName);
+        if (!file.createNewFile()) // file already exists
+            throw new NullPointerException();
+        // 可以成功创建，则建立一个Connect连接
+        Connect region_connector = new Connect(ip, port, "region");
+        // 发送copy请求
+        region_connector.send("copy:" + tableName);
+        // 收到回复
+        String result = region_connector.receive();
+        try (FileWriter writer = new FileWriter(file)) {
+            String temp = "";
+            writer.write(temp);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        region_connector.close();
     }
 }

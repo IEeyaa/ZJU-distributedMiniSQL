@@ -29,7 +29,7 @@ public class Region {
             // 每当出现新的连接，则建立一个线程来处理
             while (true) {
                 Socket socket = serverSocket.accept();
-                new Thread(new RegionThread(socket, "client")).start();
+                new Thread(new RegionThread(socket)).start();
             }
         }
     }

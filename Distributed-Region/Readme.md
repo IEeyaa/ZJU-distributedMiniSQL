@@ -57,7 +57,7 @@ Master to Region
   > + M-R(SHOWTABLE)
   > + R-M(TABLES)table1:table2:table3: ... :tablen
 
-**通信规范**
+##### 通信规范
 
 Master to Region
 
@@ -66,5 +66,33 @@ Master to Region
 | (Detect)    | (Alive) or (Wrong)                        |
 | (Showtable) | (TABLES)table1:table2:table3: ... :tablen |
 
+#### 三阶段
 
+##### 工作流程
+
+实现主从备份
+
++ Region在每次Create表的时候要发送给MasterCreate请求，Master收到Create请求后会向Region的从节点发送一个copy请求，使其更新该表信息
++ 新的Region加入并成为某个Region的从节点时，Master需要向其发送copy请求
++ Drop/Insert/delete请求在Region主节点出现时，Region需要向Master同步SQL语句
+
+实现容错容灾
+
++ Region需要有主从标识，并且可以随时转换
++ Region开始可以被选举为Master
+
+##### 通信规范
+
+Master to Region
+
+| req                     | res      |
+| ----------------------- | -------- |
+| (copy)ip:port:tablename | (copyok) |
+| (sql)sqlstatement       | null     |
+
+Region to Master
+
+| req                  | res  |
+| -------------------- | ---- |
+| (modify)sqlstatement | null |
 
