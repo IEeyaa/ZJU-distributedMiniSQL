@@ -68,6 +68,9 @@ public class Interpreter {
                 case "delete":
                     parse_delete(result);
                     break;
+                case "quit":
+                    parse_store(result);
+                    break;
                 case "show":
                     parse_show(result);
                     break;
@@ -194,6 +197,7 @@ public class Interpreter {
         Table table = new Table(tableName, primaryName, attrVec); // create table
         API.create_table(tableName, table);
         sql_execute_result = "-->Create table " + tableName + " successfully";
+
         Region.masterThread.master_connector.send("(CREATE)" + tableName);
     }
 
@@ -393,6 +397,16 @@ public class Interpreter {
             num = API.delete_row(tabStr, conditions);
             sql_execute_result = "Query ok! " + num + " row(s) are deleted";
         }
+    }
+
+    private static void parse_store(String statement) throws Exception {
+        String[] tokens = statement.split(" ");
+        if (tokens.length != 1)
+            throw new QException(0, 1001, "Extra parameters in quit");
+
+        API.store();
+        System.out.println("Data stored");
+        System.exit(0);
     }
 }
 
