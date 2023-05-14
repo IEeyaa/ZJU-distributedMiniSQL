@@ -21,7 +21,7 @@ def generate_data():
 
 
 # 创建表的SQL语句
-create_table_sql = f"CREATE TABLE {table_name} (id INT PRIMARY KEY, name VARCHAR(255), age INT, city VARCHAR(255));\n"
+create_table_sql = f"create table {table_name} (id int, name char(255), age int, city char(255), primary key(id));\n"
 
 # 生成插入数据的SQL语句
 insert_data_sql = ""
@@ -29,7 +29,7 @@ for _ in range(1000):
     data = generate_data()
     values = [str(data[column]) if isinstance(data[column], int)
               else f"'{data[column]}'" for column in columns]
-    insert_data_sql += f"INSERT INTO {table_name} ({', '.join(columns)}) VALUES ({', '.join(values)});\n"
+    insert_data_sql += f"insert into {table_name} values ({', '.join(values)});\n"
 
 # 将SQL语句写入文件
 with open("create_and_insert_data.sql", "w") as sql_file:
