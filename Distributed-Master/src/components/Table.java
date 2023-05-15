@@ -23,6 +23,26 @@ public class Table {
         this.zookeeper = zookeeper;
     }
 
+    Table(ZookeeperThread zookeeper, String tableString) {
+        this.zookeeper = zookeeper;
+        String[] tables = tableString.split(",");
+        for(String table : tables){
+            myTables.add(table);
+        }
+        if(ipToTables.size() > 1){
+            for(String ip : ipToTables.keySet()){
+                for(String table : ipToTables.get(ip)){
+                    if(myTables.contains(table)){
+                        String anotherIP = selectExcept(ip);
+                        ipToSocket.get(anotherIP).send("(copy)" + ip + ":" + table);
+                        tableToSlaveIp.put(table, anotherIP);
+                        myTables.remove(table);
+                    }
+                }
+            }
+        }
+    }
+
     /*
      * Function: Select a region server to handle the create table request
      * Input: none
@@ -142,6 +162,7 @@ public class Table {
                     if (myTables.contains(table)) {
                         ipToSocket.get(ip).send("(copy)" + ip1 + ":" + table);
                         tableToSlaveIp.put(table, ip);
+                        myTables.remove(table);
                     }
                 }
             default:
@@ -153,7 +174,8 @@ public class Table {
                             String anotherIP = selectExcept(ip);
                             ipToSocket.get(anotherIP).send("(copy)" + ip + ":" + table);
                             tableToSlaveIp.put(table, anotherIP);
-                        } else if (tableToMainIp.containsKey(table)) {
+                            myTables.remove(table);
+                    } else if (tableToMainIp.containsKey(table)) {
                             tableToSlaveIp.put(table, ip);
                         } else {
                             tableToMainIp.put(table, ip);

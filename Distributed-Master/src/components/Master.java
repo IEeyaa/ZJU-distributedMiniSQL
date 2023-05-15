@@ -18,7 +18,14 @@ public class Master {
         listener = new Listener(table);
     }
 
-    public void start() throws IOException, InterruptedException{
+    public Master(String tableString) throws IOException, InterruptedException {
+        zookeeper = new ZookeeperThread(ZookeeperIP, ZookeeperPort);
+        table = new Table(zookeeper, tableString);
+        // table.addRegion("10.192.92.22:8080");
+        listener = new Listener(table);
+    }
+
+    public void start() throws IOException, InterruptedException {
         zookeeper.start();
         listener.startListen(PORT);
     }
