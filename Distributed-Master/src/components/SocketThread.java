@@ -3,13 +3,14 @@ package components;
 import java.net.Socket;
 import java.io.*;
 
-public class SocketThread extends Thread {
+public class SocketThread extends Thread implements HeartBeatThread {
 
     Socket socket;
     String ip;
     Table table;
     BufferedReader input = null;
     BufferedWriter output = null;
+    HeartBeat heartBeat = null;
     boolean running = true;
     long lasttime;
 
@@ -22,7 +23,7 @@ public class SocketThread extends Thread {
     public SocketThread(Socket socket, Table table) {
         this.socket = socket;
         this.table = table;
-        ip = socket.getInetAddress().getHostAddress() + ":";
+        ip = socket.getInetAddress().getHostAddress();
         try {
             input = new BufferedReader(
                     new InputStreamReader(
@@ -66,6 +67,9 @@ public class SocketThread extends Thread {
                 System.out.println("Read cmd from " + ip + ":" + str);
                 process(str);
             }
+            if (heartBeat != null) {
+                heartBeat.running = false;
+            }
             socket.close();
         } catch (IOException e) {
             System.out.println("Connection broken with " + ip);
@@ -93,10 +97,16 @@ public class SocketThread extends Thread {
             }
         } else if (Cmd.startsWith("(")) {
             if (Cmd.startsWith("(hello)")) {
-                ip += Cmd.split("\\)")[1];
-                table.addRegion(ip);
+                Cmd = Cmd.split("\\)")[1] + ":";
+                ip += ":" + Cmd.split(":")[0];
+                if (Cmd.split(":").length >= 2) {
+                    table.addRegion(ip, Cmd.split(":")[1]);
+                } else {
+                    table.addRegion(ip);
+                }
                 lasttime = System.currentTimeMillis();
-                new HeartBeat(this).start();
+                heartBeat = new HeartBeat(this, 22000);
+                heartBeat.start();
             } else if (Cmd.startsWith("(CREATE)")) {
                 String[] cmds = Cmd.split("\\)");
                 if (cmds.length >= 2)
@@ -115,7 +125,7 @@ public class SocketThread extends Thread {
         }
     }
 
-    public void check() {
+    public void heartbeat() {
         if (System.currentTimeMillis() - lasttime > 20000) {
             table.removeRegion(ip);
             running = false;
