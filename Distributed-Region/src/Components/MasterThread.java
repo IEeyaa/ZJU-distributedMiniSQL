@@ -1,20 +1,18 @@
 package Components;
 
 import java.io.*;
-import java.net.Socket;
 import Connection.Connect;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import CATALOGMANAGER.CatalogManager;
 import INTERPRETER.Interpreter;
 import INTERPRETER.API;
 
 public class MasterThread implements Runnable {
 
     public Connect master_connector;
-    private Connect zookeeper_connector;
     private static long alive_time = 10000L;
-    private int ZookeeperPort;
-    private String ZookeeperIP;
     private int port;
     private String ip;
     private int regionListenPort;
@@ -23,36 +21,17 @@ public class MasterThread implements Runnable {
     static String endCode = "";
 
     public MasterThread(String ip, int port, int regionListenPort) {
-        this.ZookeeperIP = ip;
-        this.ZookeeperPort = port;
+        this.ip = ip;
+        this.port = port;
         this.regionListenPort = regionListenPort;
     }
 
     public void run() {
         try {
-            zookeeper_connector = new Connect(ZookeeperIP, ZookeeperPort, "zookeeper");
-            zookeeper_connector.connect();
-            System.out.println("connect zookeepeer OK");
-            zookeeper_connector.send("region");
-            while (true) {
-                String result = zookeeper_connector.receive();
-                if (result != null) {
-                    System.out.println(result);
-                    String[] parts = result.split(":");
-                    if (parts[0] == "null") {
-                        continue;
-                    }
-                    this.ip = parts[0];
-                    this.port = Integer.parseInt(parts[1]);
-                    zookeeper_connector.close();
-                    break;
-                }
-            }
-            System.out.println(String.format("master ip get %s:%d", ip, port));
             master_connector = new Connect(ip, port, "master");
             master_connector.connect();
             System.out.println("connect master OK");
-            master_connector.send(String.format(("(hello)%d"), regionListenPort));
+            master_connector.send(String.format(("(hello)%d:%s"), regionListenPort, CatalogManager.show_table()));
 
             // 创建定时器
             Timer timer = new Timer();
@@ -102,7 +81,7 @@ public class MasterThread implements Runnable {
         }
     }
 
-    public void copy_from_table(String ip, int port, String tableName) {
+    public void copy_from_table(String ip, int port, String tableName) throws Exception {
         System.out.println(String.format("copy from %s:%d tablename is %s", ip, port, tableName));
         Connect region_connector = new Connect(ip, port, "region");
         region_connector.connect();
@@ -137,6 +116,6 @@ public class MasterThread implements Runnable {
         System.out.println("COPY OVER");
         region_connector.close();
         // 热更新
-        // API.initial();
+        API.initial();
     }
 }

@@ -23,13 +23,14 @@ public class Region {
     public void run() throws Exception {
         API.initial();
         System.out.println("hello, Welcome to region & minisql~");
-        masterThread = new MasterThread(ZookeeperIP, ZookeeperPort, regionPort);
-        new Thread(masterThread).start();
+        // 主动连接Zookeeper
+        new Thread(new ZookeeperThread(ZookeeperIP, ZookeeperPort, regionPort)).start();
+        // 监听端口
         try (ServerSocket serverSocket = new ServerSocket(regionPort)) {
             // 每当出现新的连接，则建立一个线程来处理
             while (true) {
                 Socket socket = serverSocket.accept();
-                new Thread(new RegionThread(socket)).start();
+                new Thread(new ClientThread(socket)).start();
             }
         }
     }
