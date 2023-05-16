@@ -197,7 +197,6 @@ public class Interpreter {
         Table table = new Table(tableName, primaryName, attrVec); // create table
         API.create_table(tableName, table);
         sql_execute_result = "-->Create table " + tableName + " successfully";
-
         Region.masterThread.master_connector.send("(CREATE)" + tableName);
     }
 
@@ -382,6 +381,7 @@ public class Interpreter {
 
     private static void parse_delete(String statement) throws Exception {
         // delete from [tabName] where []
+
         int num;
         String tabStr = Utils.substring(statement, "from ", " where").trim();
         String conStr = Utils.substring(statement, "where ", "").trim();

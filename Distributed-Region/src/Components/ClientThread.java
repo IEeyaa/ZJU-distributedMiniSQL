@@ -2,10 +2,15 @@ package Components;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.Iterator;
+import java.util.Map;
 
+import CATALOGMANAGER.Attribute;
+import CATALOGMANAGER.CatalogManager;
+import CATALOGMANAGER.Table;
+import INDEXMANAGER.Index;
 import INTERPRETER.Interpreter;
 
-// client处理Thread(同时包括)
 public class ClientThread implements Runnable {
 
     private BufferedReader in = null;
@@ -23,6 +28,7 @@ public class ClientThread implements Runnable {
         this.socket = socket;
         this.port = socket.getPort();
         this.ip = socket.getInetAddress().getHostAddress();
+        this.type = "client";
     }
 
     public void run() {
@@ -59,28 +65,75 @@ public class ClientThread implements Runnable {
                 this.type = "region";
                 System.out.println("A region has enter, his address is: " + ip + ":" + port);
                 String table_name = line.split(":")[1];
-                // 处理catalog信息(未写)
-                // ...
-                // 处理表信息
-                try {
-                    // 打开文件
-                    FileReader fileReader = new FileReader(table_name);
-                    BufferedReader bufferedReader = new BufferedReader(fileReader);
-                    // 发送文件内容
-                    String file_data = "";
-                    String temp = "";
-                    while ((temp = bufferedReader.readLine()) != null) {
-                        file_data += temp;
+
+                // 建立传输流
+                DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+
+                Iterator<Map.Entry<String, Table>> iter = CatalogManager.tables.entrySet().iterator();
+                // 传输catalogManeger信息
+                dos.writeUTF("start_transform");
+                Table tmpTable;
+                while (iter.hasNext()) {
+                    Map.Entry entry = iter.next();
+                    tmpTable = (Table) entry.getValue();
+                    if (tmpTable.tableName.equals(table_name)) {
+                        // catalog读取传输
+                        dos.writeUTF("table_catalog");
+                        System.out.println("its put in");
+
+                        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                        DataOutputStream tempDos = new DataOutputStream(byteArrayOutputStream);
+
+                        // Write catalog information to the temporary output stream
+                        tempDos.writeUTF(tmpTable.tableName);
+                        tempDos.writeUTF(tmpTable.primaryKey);
+                        tempDos.writeInt(tmpTable.rowNum);
+                        tempDos.writeInt(tmpTable.indexNum);
+                        for (int i = 0; i < tmpTable.indexNum; i++) {
+                            Index tmpIndex = tmpTable.indexVector.get(i);
+                            tempDos.writeUTF(tmpIndex.indexName);
+                            tempDos.writeUTF(tmpIndex.attributeName);
+                        }
+                        tempDos.writeInt(tmpTable.attributeNum);
+                        for (int i = 0; i < tmpTable.attributeNum; i++) {
+                            Attribute tmpAttribute = tmpTable.attributeVector.get(i);
+                            tempDos.writeUTF(tmpAttribute.attributeName);
+                            tempDos.writeUTF(tmpAttribute.type.get_type().name());
+                            tempDos.writeInt(tmpAttribute.type.get_length());
+                            tempDos.writeBoolean(tmpAttribute.isUnique);
+                        }
+
+                        // Get the byte array from the temporary output stream
+                        byte[] catalogBytes = byteArrayOutputStream.toByteArray();
+
+                        // Send the byte array using dos.write
+                        dos.writeInt(catalogBytes.length);
+                        System.out.println(catalogBytes.length);
+                        dos.write(catalogBytes);
+
+                        break;
                     }
-                    // 关闭流
-                    bufferedReader.close();
-                    fileReader.close();
-                    // 一行是一个信息
-                    send(table_name + "$" + file_data);
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
-                send("FILEEOF");
+                // 打开文件
+                File file = new File(table_name);
+                dos.writeUTF(table_name);
+                // 发送数据流
+                try (FileInputStream fis = new FileInputStream(file)) {
+                    // Get the length of the file
+                    int fileLength = (int) file.length();
+
+                    // Write the length before writing the content
+                    dos.writeInt(fileLength);
+
+                    // Read the file content and write it to the output stream
+                    byte[] buffer = new byte[1024];
+                    int bytesRead;
+                    while ((bytesRead = fis.read(buffer)) != -1) {
+                        dos.write(buffer, 0, bytesRead);
+                    }
+                    dos.flush();
+                }
+                dos.writeUTF("FILEEOF");
                 close();
                 break;
             } else if (line.contains(";")) { // last line
@@ -99,19 +152,21 @@ public class ClientThread implements Runnable {
             System.out.println("A client has enter, his address is: " + ip + ":" + port);
             String result = Interpreter.interpret(main_sentence);
             send(result + endCode);
+            if (!(result.startsWith("Syntax error") || result.startsWith("Run time error"))) {
+                if (main_sentence.contains("create") || main_sentence.contains("insert")
+                        || main_sentence.contains("drop") || main_sentence.contains("delete")) {
+                    Region.masterThread.master_connector.send("(MODIFY)" + main_sentence + ";");
+                }
+            }
             close();
-        }
-    }
 
-    public void sendTableChange(String method, String tableName) {
-        System.out.println("OVER");
-        send("TABLECHANGE:" + Region.regionPort + ":" + method + ":" + tableName + endCode);
+        }
     }
 
     public boolean send(String message) {
         try {
-            out.write(message);
             System.out.println(message);
+            out.write(message);
             out.newLine();
             out.flush();
             return true;

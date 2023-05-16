@@ -51,6 +51,7 @@ public class ZookeeperThread implements Runnable {
                         }
                         Region.masterThread = new MasterThread(parts[0], Integer.parseInt(parts[1]), regionListenPort);
                         new Thread(Region.masterThread).start();
+                        zookeeper_connector.socket.close();
                     }
                 }
             }

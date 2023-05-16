@@ -10,7 +10,7 @@ import java.util.Scanner;
 public class TestClient {
     public static void main(String[] args) throws Exception {
         String host = "127.0.0.1";
-        int port = 8080;
+        int port = 8081;
 
         // Connect to the server
         SocketAddress endaddr = new InetSocketAddress(host, port);

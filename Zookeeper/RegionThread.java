@@ -38,7 +38,6 @@ public class RegionThread implements Runnable {
         } else {
             this.type = "region";
             // 告知其为region
-            send("region");
             // 返回master地址和端口
             send(ZooKeeper.masterIp + ":" + ZooKeeper.masterPort);
             connect_with_region();
@@ -60,6 +59,7 @@ public class RegionThread implements Runnable {
                 System.out.println(result);
                 // do something
             }
+            close();
         }
     }
 
@@ -67,17 +67,15 @@ public class RegionThread implements Runnable {
     public void connect_with_region() {
         // 持续监听region发送的数据
         String result = "";
-        while (true) {
-            result = receive();
-            if (result.equals("ERROR")) {
-                // 处理连接中断
-                System.out.println("region has closed socket");
-                close();
-            } else if (result != null) {
-                System.out.println(result);
-                // do something
-            }
+        result = receive();
+        if (result.equals("ERROR")) {
+            // 处理连接中断
+            System.out.println("region has closed socket");
+        } else if (result != null) {
+            System.out.println(result);
+            // do something
         }
+        close();
     }
 
     public boolean send(String message) {

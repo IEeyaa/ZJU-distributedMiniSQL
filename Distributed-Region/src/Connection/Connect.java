@@ -12,7 +12,7 @@ public class Connect {
     private String ip;
     private int port;
 
-    private Socket socket;
+    public Socket socket;
     private BufferedReader reader;
     private BufferedWriter writer;
 

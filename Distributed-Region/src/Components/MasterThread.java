@@ -57,21 +57,18 @@ public class MasterThread implements Runnable {
                         // 处理master死亡
                         System.out.println("master died");
                         return;
-                    }
-                    String method = result.substring(result.indexOf("(") + 1, result.indexOf(")"));
-                    String infor = result.substring(result.indexOf(")") + 1);
-                    switch (method) {
-                        case "copy":
-                            String[] addresses = infor.split(":");
-                            copy_from_table(addresses[0], Integer.parseInt(addresses[1]), addresses[2]);
-                            break;
-                        case "sql":
-                            String main_sentence = infor.trim().replaceAll("\\s+", " ");
-                            // to minisql
-                            Interpreter.interpret(main_sentence);
-                            break;
-                        default:
-                            break;
+                    } else if (result.startsWith("(copy)")) {
+                        String infor = result.substring(result.indexOf(")") + 1);
+                        String[] addresses = infor.split(":");
+                        System.out.println(addresses);
+                        copy_from_table(addresses[0], Integer.parseInt(addresses[1]), addresses[2]);
+                    } else if (result.startsWith("(sql)")) {
+                        String infor = result.substring(5);
+                        int index = infor.indexOf(";");
+                        String main_sentence = infor.substring(0, index).trim().replaceAll("\\s+", " ");
+                        // to minisql
+                        System.out.println(main_sentence);
+                        System.out.println(Interpreter.interpret(main_sentence));
                     }
                     System.out.println(result);
                 }
@@ -82,35 +79,50 @@ public class MasterThread implements Runnable {
     }
 
     public void copy_from_table(String ip, int port, String tableName) throws Exception {
-        System.out.println(String.format("copy from %s:%d tablename is %s", ip, port, tableName));
+        System.out.println(String.format("COPY START from %s:%d tablename is %s", ip, port, tableName));
         Connect region_connector = new Connect(ip, port, "region");
         region_connector.connect();
         // 发送copy请求
         region_connector.send("copy:" + tableName);
-        System.out.println("has send ");
         // 收到回复
-        while (true) {
-            String result = region_connector.receive();
-            if (result.equals("FILEEOF")) {
-                break;
-            }
-            String[] file_infor = result.split("\\$");
-            // 检查文件是否存在，如果存在，则清除文件内容
-            File file = new File(file_infor[0]);
-            if (file.exists()) {
-                try (PrintWriter writer = new PrintWriter(file)) {
-                    writer.print("");
-                    writer.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+        DataInputStream dis = new DataInputStream(region_connector.socket.getInputStream());
+
+        String get_infor = "";
+        get_infor = dis.readUTF();
+        if (get_infor.equals("start_transform")) {
+            while ((tableName = dis.readUTF()) != null) {
+                if (tableName.equals("FILEEOF")) {
+                    // 接收到传输结束标记，退出循环
+                    break;
+                } else if (tableName.equals("table_catalog")) {
+                    int file_length = dis.readInt();
+                    // 追加到file中
+                    try (FileOutputStream fos = new FileOutputStream(tableName, true)) {
+                        byte[] buffer = new byte[1024];
+                        int bytesRead;
+                        long totalBytesRead = 0;
+                        while (totalBytesRead < file_length && (bytesRead = dis.read(buffer, 0,
+                                (int) Math.min(buffer.length, file_length - totalBytesRead))) != -1) {
+                            fos.write(buffer, 0, bytesRead);
+                            totalBytesRead += bytesRead;
+                        }
+                        fos.close();
+                    }
+                } else {
+                    // 重写
+                    int file_length = dis.readInt();
+                    try (FileOutputStream fos = new FileOutputStream(tableName, false)) {
+                        byte[] buffer = new byte[1024];
+                        int bytesRead;
+                        long totalBytesRead = 0;
+                        while (totalBytesRead < file_length && (bytesRead = dis.read(buffer, 0,
+                                (int) Math.min(buffer.length, file_length - totalBytesRead))) != -1) {
+                            fos.write(buffer, 0, bytesRead);
+                            totalBytesRead += bytesRead;
+                        }
+                        fos.close();
+                    }
                 }
-            }
-            // 创建一个新文件
-            try (FileWriter writer = new FileWriter(file)) {
-                writer.write(file_infor[1]);
-                writer.close();
-            } catch (IOException e) {
-                e.printStackTrace();
             }
         }
         System.out.println("COPY OVER");
