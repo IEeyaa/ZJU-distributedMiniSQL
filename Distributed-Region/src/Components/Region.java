@@ -22,8 +22,9 @@ public class Region {
         System.out.println("hello, Welcome to region & minisql~");
         // 主动连接Zookeeper
         new Thread(new ZookeeperThread(ZookeeperIP, ZookeeperPort, regionPort)).start();
-        Region.masterThread = new MasterThread("127.0.0.1", 8086, regionPort);
-        new Thread(Region.masterThread).start();
+        // 测试用
+        // Region.masterThread = new MasterThread("127.0.0.1", 8086, regionPort);
+        // new Thread(Region.masterThread).start();
         // 监听端口
         try (ServerSocket serverSocket = new ServerSocket(regionPort)) {
             // 每当出现新的连接，则建立一个线程来处理

@@ -8,7 +8,7 @@ import java.util.*;
 public class CatalogManager {
 
     public static LinkedHashMap<String, Table> tables = new LinkedHashMap<>();
-    private static LinkedHashMap<String, Index> indexes = new LinkedHashMap<>();
+    public static LinkedHashMap<String, Index> indexes = new LinkedHashMap<>();
     private static String tableFilename = "table_catalog";
     private static String indexFilename = "index_catalog";
 

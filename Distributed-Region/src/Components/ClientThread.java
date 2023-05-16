@@ -114,24 +114,55 @@ public class ClientThread implements Runnable {
                         break;
                     }
                 }
-                // 打开文件
-                File file = new File(table_name);
-                dos.writeUTF(table_name);
-                // 发送数据流
-                try (FileInputStream fis = new FileInputStream(file)) {
-                    // Get the length of the file
-                    int fileLength = (int) file.length();
 
-                    // Write the length before writing the content
-                    dos.writeInt(fileLength);
+                // 传输indexManeger信息
+                Index tmpIndex;
+                // Enumeration<Index> en = indexes.elements();
+                Iterator<Map.Entry<String, Index>> index_iter = CatalogManager.indexes.entrySet().iterator();
+                while (index_iter.hasNext()) {
+                    Map.Entry entry = index_iter.next();
+                    tmpIndex = (Index) entry.getValue();
+                    if (tmpIndex.tableName.equals(table_name)) {
+                        // catalog读取传输
+                        dos.writeUTF("index_catalog");
 
-                    // Read the file content and write it to the output stream
-                    byte[] buffer = new byte[1024];
-                    int bytesRead;
-                    while ((bytesRead = fis.read(buffer)) != -1) {
-                        dos.write(buffer, 0, bytesRead);
+                        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                        DataOutputStream tempDos = new DataOutputStream(byteArrayOutputStream);
+
+                        tempDos.writeUTF(tmpIndex.indexName);
+                        tempDos.writeUTF(tmpIndex.tableName);
+                        tempDos.writeUTF(tmpIndex.attributeName);
+                        tempDos.writeInt(tmpIndex.blockNum);
+                        tempDos.writeInt(tmpIndex.rootNum);
+
+                        byte[] catalogBytes = byteArrayOutputStream.toByteArray();
+
+                        // Send the byte array using dos.write
+                        dos.writeInt(catalogBytes.length);
+                        System.out.println(catalogBytes.length);
+                        dos.write(catalogBytes);
                     }
-                    dos.flush();
+                }
+                String[] table_infor = { table_name, table_name + "_index.index" };
+                for (String file_name : table_infor) {
+                    File file = new File(file_name);
+                    dos.writeUTF(file_name);
+                    // 发送数据流
+                    try (FileInputStream fis = new FileInputStream(file)) {
+                        // Get the length of the file
+                        int fileLength = (int) file.length();
+
+                        // Write the length before writing the content
+                        dos.writeInt(fileLength);
+
+                        // Read the file content and write it to the output stream
+                        byte[] buffer = new byte[1024];
+                        int bytesRead;
+                        while ((bytesRead = fis.read(buffer)) != -1) {
+                            dos.write(buffer, 0, bytesRead);
+                        }
+                        dos.flush();
+                    }
                 }
                 dos.writeUTF("FILEEOF");
                 close();

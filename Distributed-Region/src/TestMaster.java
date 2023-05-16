@@ -6,8 +6,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Scanner;
 
-import Connection.Connect;
-
 public class TestMaster {
     public static void main(String[] args) throws Exception {
         int port = 8086;

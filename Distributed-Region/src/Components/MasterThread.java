@@ -94,7 +94,7 @@ public class MasterThread implements Runnable {
                 if (tableName.equals("FILEEOF")) {
                     // 接收到传输结束标记，退出循环
                     break;
-                } else if (tableName.equals("table_catalog")) {
+                } else if (tableName.equals("table_catalog") || tableName.equals("index_catalog")) {
                     int file_length = dis.readInt();
                     // 追加到file中
                     try (FileOutputStream fos = new FileOutputStream(tableName, true)) {
