@@ -52,7 +52,7 @@ public class ZookeeperThread extends Thread implements HeartBeatThread {
             System.out.println(e);
         }
         send("region");
-        new HeartBeat(this, 10000).start();;
+        // new HeartBeat(this, 10000).start();
         System.out.println("Successfully connect to zookeeper");
     }
 

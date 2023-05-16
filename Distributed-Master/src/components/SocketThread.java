@@ -46,7 +46,7 @@ public class SocketThread extends Thread implements HeartBeatThread {
             output.write(msg);
             output.newLine();
             output.flush();
-            System.out.println("Reply to " + ip + msg);
+            System.out.println("Reply to " + ip  + ":" + msg);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -99,6 +99,7 @@ public class SocketThread extends Thread implements HeartBeatThread {
             if (Cmd.startsWith("(hello)")) {
                 Cmd = Cmd.split("\\)")[1] + ":";
                 ip += ":" + Cmd.split(":")[0];
+                table.addSocket(ip, this);
                 if (Cmd.split(":").length >= 2) {
                     table.addRegion(ip, Cmd.split(":")[1]);
                 } else {
@@ -117,10 +118,8 @@ public class SocketThread extends Thread implements HeartBeatThread {
                     table.dropSuccess(cmds[1], ip);
             } else if (Cmd.startsWith("(ALIVE)")) {
                 lasttime = System.currentTimeMillis();
-            } else if (Cmd.startsWith("(modify)")) {
-                String[] cmds = Cmd.split("\\)");
-                if (cmds.length >= 2)
-                    table.handleSQL(cmds[1], ip);
+            } else if (Cmd.startsWith("(MODIFY)")) {
+                table.handleSQL(Cmd.substring(8), ip);
             }
         }
     }

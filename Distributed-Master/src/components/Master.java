@@ -8,7 +8,7 @@ public class Master {
     private ZookeeperThread zookeeper;
 
     private final int PORT = 8086;
-    private final String ZookeeperIP = "192.168.43.95";
+    private final String ZookeeperIP = "10.181.205.230";
     private final int ZookeeperPort = 12345;
 
     public Master() throws IOException, InterruptedException {

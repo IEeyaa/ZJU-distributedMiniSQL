@@ -26,13 +26,13 @@ public class Table {
     Table(ZookeeperThread zookeeper, String tableString) {
         this.zookeeper = zookeeper;
         String[] tables = tableString.split(",");
-        for(String table : tables){
+        for (String table : tables) {
             myTables.add(table);
         }
-        if(ipToTables.size() > 1){
-            for(String ip : ipToTables.keySet()){
-                for(String table : ipToTables.get(ip)){
-                    if(myTables.contains(table)){
+        if (ipToTables.size() > 1) {
+            for (String ip : ipToTables.keySet()) {
+                for (String table : ipToTables.get(ip)) {
+                    if (myTables.contains(table)) {
                         String anotherIP = selectExcept(ip);
                         ipToSocket.get(anotherIP).send("(copy)" + ip + ":" + table);
                         tableToSlaveIp.put(table, anotherIP);
@@ -86,7 +86,11 @@ public class Table {
      * Output: none
      */
     public void createSuccess(String tableName, String regionIp) {
-        tableToMainIp.put(tableName, regionIp);
+        if (!tableToMainIp.containsKey(tableName)) {
+            tableToMainIp.put(tableName, regionIp);
+        } else {
+            tableToSlaveIp.put(tableName, regionIp);
+        }
         if (ipToTables.containsKey(regionIp)) {
             ipToTables.get(regionIp).add(tableName);
         } else {
@@ -175,7 +179,7 @@ public class Table {
                             ipToSocket.get(anotherIP).send("(copy)" + ip + ":" + table);
                             tableToSlaveIp.put(table, anotherIP);
                             myTables.remove(table);
-                    } else if (tableToMainIp.containsKey(table)) {
+                        } else if (tableToMainIp.containsKey(table)) {
                             tableToSlaveIp.put(table, ip);
                         } else {
                             tableToMainIp.put(table, ip);
