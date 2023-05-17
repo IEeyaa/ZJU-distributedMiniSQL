@@ -70,6 +70,8 @@ public class Connection {
     public String receive() {
         try {
             String res = reader.readLine();
+            if (res == null)
+                return res;
             return res.replaceAll("\\$", "\n").trim();
         } catch (IOException e) {
             System.err.println("Failed to receive message from the " + type + "server: " + e.getMessage());
