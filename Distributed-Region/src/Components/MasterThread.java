@@ -30,7 +30,7 @@ public class MasterThread implements Runnable {
         try {
             master_connector = new Connect(ip, port, "master");
             master_connector.connect();
-            System.out.println("connect master OK");
+            System.out.println(String.format("<master>connect master %s:%d OK", ip, port));
             master_connector.send(String.format(("(hello)%d:%s"), regionListenPort, CatalogManager.show_table()));
 
             // 创建定时器
@@ -45,7 +45,7 @@ public class MasterThread implements Runnable {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    System.out.println("OK");
+                    System.out.println("<master>send ALIVE OK");
                 }
             }, 0L, alive_time);
 
@@ -55,22 +55,19 @@ public class MasterThread implements Runnable {
                 if (result != null) {
                     if (result.equals("ERROR")) {
                         // 处理master死亡
-                        System.out.println("master died");
+                        System.out.println("<master> warning! master died");
                         return;
                     } else if (result.startsWith("(copy)")) {
                         String infor = result.substring(result.indexOf(")") + 1);
                         String[] addresses = infor.split(":");
-                        System.out.println(addresses);
                         copy_from_table(addresses[0], Integer.parseInt(addresses[1]), addresses[2]);
                     } else if (result.startsWith("(sql)")) {
                         String infor = result.substring(5);
                         int index = infor.indexOf(";");
                         String main_sentence = infor.substring(0, index).trim().replaceAll("\\s+", " ");
                         // to minisql
-                        System.out.println(main_sentence);
-                        System.out.println(Interpreter.interpret(main_sentence));
+                        Interpreter.interpret(main_sentence);
                     }
-                    System.out.println(result);
                 }
             }
         } catch (Exception e) {
@@ -79,7 +76,7 @@ public class MasterThread implements Runnable {
     }
 
     public void copy_from_table(String ip, int port, String tableName) throws Exception {
-        System.out.println(String.format("COPY START from %s:%d tablename is %s", ip, port, tableName));
+        System.out.println(String.format("<region>COPY START from %s:%d tablename is %s", ip, port, tableName));
         Connect region_connector = new Connect(ip, port, "region");
         region_connector.connect();
         // 发送copy请求
@@ -125,7 +122,7 @@ public class MasterThread implements Runnable {
                 }
             }
         }
-        System.out.println("COPY OVER");
+        System.out.println("<region>COPY OVER");
         region_connector.close();
         // 热更新
         API.initial();

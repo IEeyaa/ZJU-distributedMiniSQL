@@ -19,22 +19,25 @@ public class ZookeeperThread implements Runnable {
     public void run() {
         try {
             zookeeper_connector = new Connect(ZookeeperIP, ZookeeperPort, "zookeeper");
-            zookeeper_connector.connect();
-            System.out.println("connect zookeepeer OK");
+            if (!zookeeper_connector.connect()) {
+                System.out.println("no zookeeper, sorry");
+                System.exit(1);
+            }
+            System.out.println("<zookeeper>connect zookeeper OK");
             zookeeper_connector.send("region:" + regionListenPort);
             while (true) {
                 String result = zookeeper_connector.receive();
                 if (result != null) {
                     // 打印Zookeeper信息
-                    System.out.println(result);
+                    System.out.println("<zookeeper>" + result);
                     // 更换Master节点, 数据格式master_change:ip:port
-                    if (result.startsWith("master_change")) {
+                    if (result.startsWith("change")) {
                         String[] parts = result.split(":");
                         Region.masterThread = new MasterThread(parts[1], Integer.parseInt(parts[2]), regionListenPort);
                         new Thread(Region.masterThread).start();
                     }
                     // 成为新的master, 数据格式master
-                    else if (result.startsWith("master")) {
+                    else if (result.startsWith("toMaster")) {
                         System.out.println("I'm the new master");
                         // 处理其它事情
                         // 1.new一个master线程

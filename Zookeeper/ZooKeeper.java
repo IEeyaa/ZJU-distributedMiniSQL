@@ -3,11 +3,15 @@ import java.io.BufferedWriter;
 
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Map;
 
 public class ZooKeeper {
-    static String masterIp = null;
-    static int masterPort = -1;
+    // zookeeper监听端口
     static int port = 12345;
+    // 存储所有region节点的信息
+    static Map<String, RegionThread> regionInfor;
+    // 当前的master信息
+    static RegionThread nowMaster = null;
 
     public static void main(String[] args) throws Exception {
         try (ServerSocket serverSocket = new ServerSocket(port)) {
@@ -27,7 +31,7 @@ public class ZooKeeper {
                     new Thread(new ClientThread(socket, out)).start();
                 } else if (request.startsWith("region")) {
                     // 分配给region线程处理
-                    new Thread(new RegionThread(socket)).start();
+                    new Thread(new RegionThread(socket, Integer.parseInt(request.split(":")[1]))).start();
                 } else {
                     System.out.println("invalid request");
                     socket.close();

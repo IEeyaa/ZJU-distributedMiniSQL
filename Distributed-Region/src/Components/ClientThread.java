@@ -63,7 +63,7 @@ public class ClientThread implements Runnable {
                 return;
             } else if (line.contains("copy:")) {
                 this.type = "region";
-                System.out.println("A region has enter, his address is: " + ip + ":" + port);
+                System.out.println("<region>A region has enter, his address is: " + ip + ":" + port);
                 String table_name = line.split(":")[1];
 
                 // 建立传输流
@@ -79,7 +79,6 @@ public class ClientThread implements Runnable {
                     if (tmpTable.tableName.equals(table_name)) {
                         // catalog读取传输
                         dos.writeUTF("table_catalog");
-                        System.out.println("its put in");
 
                         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                         DataOutputStream tempDos = new DataOutputStream(byteArrayOutputStream);
@@ -108,7 +107,6 @@ public class ClientThread implements Runnable {
 
                         // Send the byte array using dos.write
                         dos.writeInt(catalogBytes.length);
-                        System.out.println(catalogBytes.length);
                         dos.write(catalogBytes);
 
                         break;
@@ -139,7 +137,6 @@ public class ClientThread implements Runnable {
 
                         // Send the byte array using dos.write
                         dos.writeInt(catalogBytes.length);
-                        System.out.println(catalogBytes.length);
                         dos.write(catalogBytes);
                     }
                 }
@@ -180,8 +177,9 @@ public class ClientThread implements Runnable {
             // after get the whole statement
             String main_sentence = statement.toString().trim().replaceAll("\\s+", " ");
             // to minisql
-            System.out.println("A client has enter, his address is: " + ip + ":" + port);
+            System.out.println("<client>A client has enter, his address is: " + ip + ":" + port);
             String result = Interpreter.interpret(main_sentence);
+            System.out.println(result);
             send(result + endCode);
             if (!(result.startsWith("Syntax error") || result.startsWith("Run time error"))) {
                 if (main_sentence.contains("create") || main_sentence.contains("insert")
@@ -196,7 +194,6 @@ public class ClientThread implements Runnable {
 
     public boolean send(String message) {
         try {
-            System.out.println(message);
             out.write(message);
             out.newLine();
             out.flush();

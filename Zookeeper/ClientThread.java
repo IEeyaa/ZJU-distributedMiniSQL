@@ -2,6 +2,7 @@
 import java.io.*;
 import java.net.Socket;
 
+// Client短连接
 public class ClientThread implements Runnable {
 
     private BufferedWriter out = null;
@@ -22,8 +23,8 @@ public class ClientThread implements Runnable {
 
     public void run() {
         System.out.println(String.format("A client has enter, its address is %s:%d", ip, port));
-        if (ZooKeeper.masterIp != null && ZooKeeper.masterPort > 0) {
-            send(ZooKeeper.masterIp + ":" + ZooKeeper.masterPort);
+        if (ZooKeeper.nowMaster != null) {
+            send(ZooKeeper.nowMaster.getAddress());
         } else {
             send("No master available");
         }
