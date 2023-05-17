@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Random;
 
 public class RegionThread implements Runnable {
-    private static final long HEARTBEAT_TIMEOUT = 5000;
+    private static final long HEARTBEAT_TIMEOUT = 12000;
     private Socket socket;
     private int port;
     private String ip;
@@ -16,9 +16,10 @@ public class RegionThread implements Runnable {
     private BufferedWriter out = null;
     // 这里要建立一个数据结构来存储ip和port相关信息表;
 
-    public RegionThread(Socket socket, int listenPort) {
+    public RegionThread(Socket socket, int listenPort, String type) {
         this.socket = socket;
         this.port = listenPort;
+        this.type = type;
         this.ip = socket.getInetAddress().getHostAddress();
     }
 
@@ -37,21 +38,16 @@ public class RegionThread implements Runnable {
         }
         System.out.println(String.format("A region has enter, its address is %s:%d", ip, port));
         // 选举Master
-        if (ZooKeeper.nowMaster == null) {
+        if (this.type.equals("master")) {
             ZooKeeper.nowMaster = this;
-            this.type = "master";
             System.out.println("Region registered as master: " + getAddress());
-            // Master会切换监听端口
-            this.port = 8086;
             // 告知其为master
-            send("master");
             try {
                 connect_with_master();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         } else {
-            this.type = "region";
             // 告知其为region
             // 返回master地址和端口
             send(ZooKeeper.nowMaster.getAddress());
@@ -105,7 +101,7 @@ public class RegionThread implements Runnable {
                 break;
             }
             // 收到心跳
-            else if (result.equals("<ALIVE>")) {
+            else if (result.equals("ALIVE")) {
                 // 更新最后一次接收到数据的时间戳
                 lastReceivedTime = System.currentTimeMillis();
             }

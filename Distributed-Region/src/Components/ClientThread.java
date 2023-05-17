@@ -21,6 +21,9 @@ public class ClientThread implements Runnable {
     private String ip;
     private String type;
 
+    // 标识符
+    private volatile boolean isRunning = true;
+
     // 结尾符
     static String endCode = "";
 
@@ -33,6 +36,7 @@ public class ClientThread implements Runnable {
 
     public void run() {
         try {
+
             in = new BufferedReader(new java.io.InputStreamReader(socket.getInputStream()));
             out = new BufferedWriter(new java.io.OutputStreamWriter(socket.getOutputStream()));
             try {
@@ -44,6 +48,7 @@ public class ClientThread implements Runnable {
                 System.out.println("Default error: " + e.getMessage());
             }
             socket.close();
+
         } catch (Exception e) {
             e.printStackTrace();
         }

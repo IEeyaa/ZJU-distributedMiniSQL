@@ -1,5 +1,8 @@
 package Components;
 
+import java.util.Iterator;
+
+import CATALOGMANAGER.CatalogManager;
 import Connection.Connect;
 
 // 用于连接zookeeper，汇报监听端口，同时持续监听zookeeper信息（广播/任命）
@@ -45,17 +48,33 @@ public class ZookeeperThread implements Runnable {
                         // 3.杀掉以下线程
                         // 自己线程一定要杀
                         // Region.masterThread 杀掉
+
+                        String tableString = "";
+                        Iterator<String> iterator = CatalogManager.tables.keySet().iterator();
+                        while (iterator.hasNext()) {
+                            String key = iterator.next();
+                            tableString += key;
+                            if (iterator.hasNext()) {
+                                tableString += ",";
+                            }
+                        }
+                        // 新建一个master线程
+
+                        Region.masterThread.stop();
                     }
                     // 初始连接
-                    else {
+                    else if (result.equals("ERROR")) {
+                        System.out.println("Zookeeper error");
+                    } else {
+                        System.out.println(result);
                         String[] parts = result.split(":");
                         if (parts[0] == "null") {
                             continue;
                         }
                         Region.masterThread = new MasterThread(parts[0], Integer.parseInt(parts[1]), regionListenPort);
                         new Thread(Region.masterThread).start();
-                        zookeeper_connector.socket.close();
                     }
+
                 }
             }
         } catch (Exception e) {

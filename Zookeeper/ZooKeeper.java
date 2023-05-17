@@ -1,6 +1,6 @@
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Map;
@@ -31,7 +31,29 @@ public class ZooKeeper {
                     new Thread(new ClientThread(socket, out)).start();
                 } else if (request.startsWith("region")) {
                     // 分配给region线程处理
-                    new Thread(new RegionThread(socket, Integer.parseInt(request.split(":")[1]))).start();
+                    new Thread(new RegionThread(socket, Integer.parseInt(request.split(":")[1]), "region")).start();
+                } else if (request.startsWith("master")) {
+                    // 分配给region线程处理
+                    new Thread(new RegionThread(socket, Integer.parseInt(request.split(":")[1]), "mastern")).start();
+                } else if (request.startsWith("server")) {
+                    if (nowMaster == null) {
+                        try {
+                            out.write("master");
+                            out.newLine();
+                            out.flush();
+                        } catch (IOException e) {
+                            System.err.println("Failed to send message to the " + "server: " + e.getMessage());
+                        }
+                    } else {
+                        try {
+                            out.write("region");
+                            out.newLine();
+                            out.flush();
+                        } catch (IOException e) {
+                            System.err.println("Failed to send message to the " + "server: " + e.getMessage());
+                        }
+                    }
+                    socket.close();
                 } else {
                     System.out.println("invalid request");
                     socket.close();

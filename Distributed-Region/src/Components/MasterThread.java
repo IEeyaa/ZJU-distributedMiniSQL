@@ -16,6 +16,7 @@ public class MasterThread implements Runnable {
     private int port;
     private String ip;
     private int regionListenPort;
+    private volatile boolean isRunning = true;
 
     // 结尾符
     static String endCode = "";
@@ -50,12 +51,13 @@ public class MasterThread implements Runnable {
             }, 0L, alive_time);
 
             // 接受请求、发送请求【create drop insert delete】
-            while (true) {
+            while (isRunning && !Thread.currentThread().isInterrupted()) {
                 String result = master_connector.receive();
                 if (result != null) {
                     if (result.equals("ERROR")) {
                         // 处理master死亡
                         System.out.println("<master> warning! master died");
+                        master_connector.close();
                         return;
                     } else if (result.startsWith("(copy)")) {
                         String infor = result.substring(result.indexOf(")") + 1);
@@ -126,5 +128,10 @@ public class MasterThread implements Runnable {
         region_connector.close();
         // 热更新
         API.initial();
+    }
+
+    public void stop() {
+        isRunning = false;
+        Thread.currentThread().interrupt();
     }
 }
