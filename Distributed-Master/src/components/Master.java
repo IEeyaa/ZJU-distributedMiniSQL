@@ -2,7 +2,7 @@ package components;
 
 import java.io.IOException;
 
-public class Master {
+public class Master extends Thread{
     private Table table;
     private Listener listener;
     private ZookeeperThread zookeeper;
@@ -18,8 +18,19 @@ public class Master {
         listener = new Listener(table);
     }
 
-    public void start() throws IOException, InterruptedException{
-        zookeeper.start();
-        listener.startListen(PORT);
+    public Master(String tableString) throws IOException, InterruptedException {
+        zookeeper = new ZookeeperThread(ZookeeperIP, ZookeeperPort);
+        table = new Table(zookeeper, tableString);
+        // table.addRegion("10.192.92.22:8080");
+        listener = new Listener(table);
+    }
+
+    public void run(){
+        try {
+            zookeeper.start();
+            listener.startListen(PORT);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

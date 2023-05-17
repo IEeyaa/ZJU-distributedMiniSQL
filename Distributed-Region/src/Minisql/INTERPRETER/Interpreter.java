@@ -197,7 +197,6 @@ public class Interpreter {
         Table table = new Table(tableName, primaryName, attrVec); // create table
         API.create_table(tableName, table);
         sql_execute_result = "-->Create table " + tableName + " successfully";
-
         Region.masterThread.master_connector.send("(CREATE)" + tableName);
     }
 
@@ -382,6 +381,7 @@ public class Interpreter {
 
     private static void parse_delete(String statement) throws Exception {
         // delete from [tabName] where []
+
         int num;
         String tabStr = Utils.substring(statement, "from ", " where").trim();
         String conStr = Utils.substring(statement, "where ", "").trim();
@@ -467,10 +467,12 @@ class Utils {
     }
 
     public static String print_rows(Vector<TableRow> tab, String tabName) throws Exception {
+        String result = "";
         if (tab.size() == 0) {
             return "-->Query ok! 0 rows are selected";
         }
         int attrSize = tab.get(0).get_attribute_size();
+        int cnt = 0;
         Vector<Integer> v = new Vector<>(attrSize);
         for (int j = 0; j < attrSize; j++) {
             int len = get_max_attr_length(tab, j);
@@ -478,18 +480,29 @@ class Utils {
             if (attrName.length() > len)
                 len = attrName.length();
             v.add(len);
+            String format = "|%-" + len + "s";
+            result += String.format(format, attrName);
+            cnt = cnt + len + 1;
         }
+        cnt++;
+        result += "|$";
+        for (int i = 0; i < cnt; i++)
+            result += "-";
+        result += "$";
         List<Map<String, String>> list = new ArrayList<>();
         for (int i = 0; i < tab.size(); i++) {
             TableRow row = tab.get(i);
             Map<String, String> inputParams = new HashMap<String, String>();
             for (int j = 0; j < attrSize; j++) {
+                String format = "|%-" + v.get(j) + "s";
+                result += String.format(format, row.get_attribute_value(j));
                 String attribute_name = "\"" + CatalogManager.get_attribute_name(tabName, j) + "\"";
                 String attribute_value = "\"" + row.get_attribute_value(j) + "\"";
                 inputParams.put(attribute_name, attribute_value);
             }
             list.add(inputParams);
+            result += "|$";
         }
-        return list.toString() + "$-->Query ok! " + tab.size() + " rows are selected";
+        return result + "$-->Query ok! " + tab.size() + " rows are selected";
     }
 }

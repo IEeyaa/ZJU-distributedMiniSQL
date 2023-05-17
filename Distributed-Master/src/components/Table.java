@@ -16,11 +16,31 @@ public class Table {
     private HashMap<String, SocketThread> ipToSocket = new HashMap<>();
     // ip and port -> tables
     private HashMap<String, ArrayList<String>> ipToTables = new HashMap<>();
-    // a list of all region servers' ip and port
-    // private ArrayList<String> regions = new ArrayList<>();
+    // tables need to be treated
+    private ArrayList<String> myTables = new ArrayList<>();
 
     Table(ZookeeperThread zookeeper) {
         this.zookeeper = zookeeper;
+    }
+
+    Table(ZookeeperThread zookeeper, String tableString) {
+        this.zookeeper = zookeeper;
+        String[] tables = tableString.split(",");
+        for (String table : tables) {
+            myTables.add(table);
+        }
+        if (ipToTables.size() > 1) {
+            for (String ip : ipToTables.keySet()) {
+                for (String table : ipToTables.get(ip)) {
+                    if (myTables.contains(table)) {
+                        String anotherIP = selectExcept(ip);
+                        ipToSocket.get(anotherIP).send("(copy)" + ip + ":" + table);
+                        tableToSlaveIp.put(table, anotherIP);
+                        myTables.remove(table);
+                    }
+                }
+            }
+        }
     }
 
     /*
@@ -66,7 +86,11 @@ public class Table {
      * Output: none
      */
     public void createSuccess(String tableName, String regionIp) {
-        tableToMainIp.put(tableName, regionIp);
+        if (!tableToMainIp.containsKey(tableName)) {
+            tableToMainIp.put(tableName, regionIp);
+        } else {
+            tableToSlaveIp.put(tableName, regionIp);
+        }
         if (ipToTables.containsKey(regionIp)) {
             ipToTables.get(regionIp).add(tableName);
         } else {
@@ -109,8 +133,61 @@ public class Table {
      * Output: none
      */
     public void addRegion(String ip) {
-        // regions.add(ip);
-        ipToTables.put(ip, new ArrayList<String>());
+        ArrayList<String> a = new ArrayList<>();
+        ipToTables.put(ip, a);
+        System.out.println("Add a new region:" + ip);
+    }
+
+    /*
+     * Function: Add a region into record together with its tables
+     * Input:
+     * - ip: a string of region's ip and port
+     * - tableString: a string of all tables the region has, split with ","
+     * Output: none
+     */
+    public void addRegion(String ip, String tableString) {
+        ArrayList<String> a = new ArrayList<>();
+        String[] tables = tableString.split(",");
+        switch (ipToTables.size()) {
+            case 0:
+                for (String table : tables) {
+                    if (!table.equals("")) {
+                        a.add(table);
+                        tableToMainIp.put(table, ip);
+                    }
+                }
+                break;
+            case 1:
+                String ip1 = null;
+                for (String i : ipToTables.keySet()) {
+                    ip1 = i;
+                }
+                for (String table : ipToTables.get(ip1)) {
+                    if (myTables.contains(table)) {
+                        ipToSocket.get(ip).send("(copy)" + ip1 + ":" + table);
+                        tableToSlaveIp.put(table, ip);
+                        myTables.remove(table);
+                    }
+                }
+            default:
+                for (String table : tables) {
+                    if (!table.equals("")) {
+                        a.add(table);
+                        if (myTables.contains(table)) {
+                            tableToMainIp.put(table, ip);
+                            String anotherIP = selectExcept(ip);
+                            ipToSocket.get(anotherIP).send("(copy)" + ip + ":" + table);
+                            tableToSlaveIp.put(table, anotherIP);
+                            myTables.remove(table);
+                        } else if (tableToMainIp.containsKey(table)) {
+                            tableToSlaveIp.put(table, ip);
+                        } else {
+                            tableToMainIp.put(table, ip);
+                        }
+                    }
+                }
+        }
+        ipToTables.put(ip, a);
         System.out.println("Add a new region:" + ip);
     }
 
@@ -120,6 +197,8 @@ public class Table {
      * Output: none
      */
     public void removeRegion(String ip) {
+        if(ipToTables.get(ip) == null || ipToSocket.get(ip) == null)
+            return;
         for (String i : ipToTables.get(ip)) {
             String anotherIP = selectExcept(ip);
             if (tableToMainIp.get(i).equals(ip)) {
@@ -130,7 +209,6 @@ public class Table {
                 ipToSocket.get(anotherIP).send("(copy)" + tableToMainIp.get(i) + ":" + i);
             }
         }
-        // regions.remove(ip);
         zookeeper.send("(remove)" + ip);
         ipToTables.remove(ip);
         ipToSocket.remove(ip);

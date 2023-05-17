@@ -3,13 +3,14 @@ package components;
 import java.net.Socket;
 import java.io.*;
 
-public class SocketThread extends Thread {
+public class SocketThread extends Thread implements HeartBeatThread {
 
     Socket socket;
     String ip;
     Table table;
     BufferedReader input = null;
     BufferedWriter output = null;
+    HeartBeat heartBeat = null;
     boolean running = true;
     long lasttime;
 
@@ -22,7 +23,7 @@ public class SocketThread extends Thread {
     public SocketThread(Socket socket, Table table) {
         this.socket = socket;
         this.table = table;
-        ip = socket.getInetAddress().getHostAddress() + ":";
+        ip = socket.getInetAddress().getHostAddress();
         try {
             input = new BufferedReader(
                     new InputStreamReader(
@@ -45,7 +46,7 @@ public class SocketThread extends Thread {
             output.write(msg);
             output.newLine();
             output.flush();
-            System.out.println("Reply to " + ip + msg);
+            System.out.println("Reply to " + ip  + ":" + msg);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -65,6 +66,9 @@ public class SocketThread extends Thread {
                     continue;
                 System.out.println("Read cmd from " + ip + ":" + str);
                 process(str);
+            }
+            if (heartBeat != null) {
+                heartBeat.running = false;
             }
             socket.close();
         } catch (IOException e) {
@@ -93,10 +97,17 @@ public class SocketThread extends Thread {
             }
         } else if (Cmd.startsWith("(")) {
             if (Cmd.startsWith("(hello)")) {
-                ip += Cmd.split("\\)")[1];
-                table.addRegion(ip);
+                Cmd = Cmd.split("\\)")[1] + ":";
+                ip += ":" + Cmd.split(":")[0];
+                table.addSocket(ip, this);
+                if (Cmd.split(":").length >= 2) {
+                    table.addRegion(ip, Cmd.split(":")[1]);
+                } else {
+                    table.addRegion(ip);
+                }
                 lasttime = System.currentTimeMillis();
-                new HeartBeat(this).start();
+                heartBeat = new HeartBeat(this, 22000);
+                heartBeat.start();
             } else if (Cmd.startsWith("(CREATE)")) {
                 String[] cmds = Cmd.split("\\)");
                 if (cmds.length >= 2)
@@ -107,15 +118,13 @@ public class SocketThread extends Thread {
                     table.dropSuccess(cmds[1], ip);
             } else if (Cmd.startsWith("(ALIVE)")) {
                 lasttime = System.currentTimeMillis();
-            } else if (Cmd.startsWith("(modify)")) {
-                String[] cmds = Cmd.split("\\)");
-                if (cmds.length >= 2)
-                    table.handleSQL(cmds[1], ip);
+            } else if (Cmd.startsWith("(MODIFY)")) {
+                table.handleSQL(Cmd.substring(8), ip);
             }
         }
     }
 
-    public void check() {
+    public void heartbeat() {
         if (System.currentTimeMillis() - lasttime > 20000) {
             table.removeRegion(ip);
             running = false;

@@ -1,5 +1,3 @@
-package Connection;
-
 import java.io.IOException;
 import java.net.Socket;
 import java.io.BufferedReader;
@@ -12,7 +10,7 @@ public class Connect {
     private String ip;
     private int port;
 
-    public Socket socket;
+    private Socket socket;
     private BufferedReader reader;
     private BufferedWriter writer;
 
@@ -67,8 +65,7 @@ public class Connect {
             return reader.readLine();
         } catch (IOException e) {
             System.err.println("Failed to receive message from the " + type + "server: " + e.getMessage());
-            e.printStackTrace();
-            return "ERROR";
+            return null;
         }
     }
 
