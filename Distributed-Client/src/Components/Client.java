@@ -10,11 +10,14 @@ import Util.Utils;
 import Connection.Connection;
 
 public class Client {
-    final private String ZookeeperIP = "192.168.43.95";
+    final private String ZookeeperIP = "10.162.90.213";
     final private int ZookeeperPort = 12345;
 
     private String MasterIP = null;
     private int MasterPort = -1;
+
+    private String RegionIP = null;
+    private int RegionPort = -1;
 
     private Cache cache = null;
     private Scanner scanner = null;
@@ -26,63 +29,135 @@ public class Client {
     public Client() {
         cache = new Cache();
         scanner = new Scanner(System.in);
+    }
 
-        // connect to zookeeper and get master info
-        try {
-            GetMaster();
-        } catch (Exception e) {
-            System.err.println("Failed to connect to zookeeper: " + e.getMessage());
-            System.exit(-1);
+    private void connectToZookeeper() {
+        // connect to zookeeper
+        zookeeper = new Connection(ZookeeperIP, ZookeeperPort, "zookeeper");
+        while (!zookeeper.connect()) {
+            System.err.println("ERROR: Reconnect to zookeeper...");
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
     private void GetMaster() {
-        zookeeper = new Connection(ZookeeperIP, ZookeeperPort, "zookeeper");
-        if (!zookeeper.connect())
-            return;
+        // send request to zookeeper
+        connectToZookeeper();
         zookeeper.send("client");
-
         String res = zookeeper.receive();
-        String[] parts = res.split(":");
-        if (parts.length != 2) {
-            System.out.println(res);
-            return;
+        while (res == null) {
+            System.err.println("Error: Zookeeper DIE!");
+            connectToZookeeper();
+            zookeeper.send("client");
+            res = zookeeper.receive();
         }
+        String[] parts = res.split(":");
+        while (parts.length != 2) {
+            System.err.println("Error: Invalid master " + res);
+            zookeeper.close();
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            connectToZookeeper();
+            zookeeper.send("client");
+            res = zookeeper.receive();
+            parts = res.split(":");
+        }
+        // get master
         MasterIP = parts[0];
         MasterPort = Integer.parseInt(parts[1]);
-        zookeeper.close();
-
         System.out.println("Get Master : " + res);
+
+        zookeeper.close();
     }
 
-    private RegionInfo GetRegionInfo(String req) {
+    private void connectToMaster() {
+        GetMaster();
+        master = new Connection(MasterIP, MasterPort, "master");
+        while (!master.connect()) {
+            System.err.println("ERROR: Reconnect to master...");
+            master.close();
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            GetMaster();
+            master = new Connection(MasterIP, MasterPort, "master");
+        }
+    }
+
+    private void GetRegion(String req) {
         master.send(req);
         // obtain the Region
         String res = master.receive();
-        String[] parts = res.split(":");
-        if (parts.length != 2) {
-            System.err.println("Error: Invalid region " + res);
-            return null;
+        while (res == null) {
+            System.err.println("Error: Master DIE!");
+            connectToMaster();
+            master.send(req);
+            res = master.receive();
         }
-        return new RegionInfo(parts[0], Integer.parseInt(parts[1]));
+        String[] parts = res.split(":");
+        while (parts.length != 2) {
+            System.err.println("Error: Invalid region " + res);
+            master.close();
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            connectToMaster();
+            master.send(req);
+            res = master.receive();
+            parts = res.split(":");
+        }
+        RegionIP = parts[0];
+        RegionPort = Integer.parseInt(parts[1]);
     }
 
-    private void GetSqlReply(String sql) {
+    private void connectToRegion(String req) {
+        GetRegion(req);
+        region = new Connection(RegionIP, RegionPort, "region");
+        while (!region.connect()) {
+            System.err.println("ERROR: Reconnect to region...");
+            region.close();
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            GetRegion(req);
+            region = new Connection(RegionIP, RegionPort, "region");
+        }
+    }
+
+    private void GetSqlReply(String sql, String req, String TABLE) {
         region.send(sql);
         // Retrieve the Region’s response and display it.
         String res = region.receive();
+        while (res == null) {
+            System.err.println("Error: Region DIE!");
+            cache.remove(TABLE);
+            connectToRegion(req);
+            region.send(sql);
+            res = region.receive();
+        }
         System.out.println(res);
+        // update the cache
+        cache.put(TABLE, new RegionInfo(RegionIP, RegionPort));
         // close the connection
         region.close();
         return;
     }
 
     public void run() {
-        // connect to master
-        master = new Connection(MasterIP, MasterPort, "master");
-        if (!master.connect())
-            return;
-
+        connectToMaster();
         System.out.println("Welcome to Distributed Database!");
         while (true) {
 
@@ -113,6 +188,12 @@ public class Client {
             } else if (SQL.equals("show")) {
                 master.send("<show>");
                 String res = master.receive();
+                while (res == null) {
+                    System.err.println("Error: Master DIE!");
+                    connectToMaster();
+                    master.send("<show>");
+                    res = master.receive();
+                }
                 System.out.println(res);
                 continue;
             } else {
@@ -141,27 +222,19 @@ public class Client {
                             String FILE_TABLE = Utils.getTables(FILE_SQL);
 
                             if (FILE_METHOD.equals("create")) {
-                                RegionInfo regioninfo = GetRegionInfo("<create>");
-                                cache.put(FILE_TABLE, regioninfo);
-                                region = new Connection(regioninfo.IP(), regioninfo.Port(), "region");
-                                if (!region.connect())
-                                    return;
-                                GetSqlReply(FILE_SQL + ";");
+                                connectToRegion("<create>");
+                                GetSqlReply(FILE_SQL + ";", "<create>", FILE_TABLE);
                                 continue;
                             } else {
                                 RegionInfo regioninfo = cache.get(FILE_TABLE);
                                 if (regioninfo != null) {
-                                    region = new Connection(regioninfo.IP(), regioninfo.Port(), "region");
-                                    if (!region.connect())
-                                        return;
-                                    GetSqlReply(FILE_SQL + ";");
+                                    RegionIP = regioninfo.IP();
+                                    RegionPort = regioninfo.Port();
+                                    region = new Connection(RegionIP, RegionPort, "region");
+                                    GetSqlReply(FILE_SQL + ";", "<get>" + FILE_TABLE, FILE_TABLE);
                                 } else {
-                                    regioninfo = GetRegionInfo("<get>" + FILE_TABLE);
-                                    cache.put(FILE_TABLE, regioninfo);
-                                    region = new Connection(regioninfo.IP(), regioninfo.Port(), "region");
-                                    if (!region.connect())
-                                        return;
-                                    GetSqlReply(FILE_SQL + ";");
+                                    connectToRegion("<get>" + FILE_TABLE);
+                                    GetSqlReply(SQL + ";", "<get>" + FILE_TABLE, FILE_TABLE);
                                 }
                                 continue;
                             }
@@ -172,35 +245,25 @@ public class Client {
                     continue;
                 } else if (METHOD.equals("create")) {
                     // If it is a create operation, send a create request to the Master
-                    RegionInfo regioninfo = GetRegionInfo("<create>");
-                    // update the cache
-                    cache.put(TABLE, regioninfo);
+                    connectToRegion("<create>");
                     // connect to the Region and send the SQL
-                    region = new Connection(regioninfo.IP(), regioninfo.Port(), "region");
-                    if (!region.connect())
-                        return;
-                    GetSqlReply(SQL + ";");
+                    GetSqlReply(SQL + ";", "<create>", TABLE);
                     continue;
                 } else {
                     RegionInfo regioninfo = cache.get(TABLE);
                     // if exists in the cache.
                     if (regioninfo != null) {
                         // connect to the Region and send the SQL
-                        region = new Connection(regioninfo.IP(), regioninfo.Port(), "region");
-                        if (!region.connect())
-                            return;
-                        GetSqlReply(SQL + ";");
+                        RegionIP = regioninfo.IP();
+                        RegionPort = regioninfo.Port();
+                        region = new Connection(RegionIP, RegionPort, "region");
+                        GetSqlReply(SQL + ";", "<get>" + TABLE, TABLE);
                     } else {
                         // not exist
                         // Send the table name to the Master
-                        regioninfo = GetRegionInfo("<get>" + TABLE);
-                        // update the cache
-                        cache.put(TABLE, regioninfo);
+                        connectToRegion("<get>" + TABLE);
                         // connect to the Region and send the SQL
-                        region = new Connection(regioninfo.IP(), regioninfo.Port(), "region");
-                        if (!region.connect())
-                            return;
-                        GetSqlReply(SQL + ";");
+                        GetSqlReply(SQL + ";", "<get>" + TABLE, TABLE);
                     }
                     continue;
                 }
