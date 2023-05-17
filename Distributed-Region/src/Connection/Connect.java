@@ -67,7 +67,6 @@ public class Connect {
             return reader.readLine();
         } catch (IOException e) {
             System.err.println("Failed to receive message from the " + type + "server: " + e.getMessage());
-            e.printStackTrace();
             return "ERROR";
         }
     }

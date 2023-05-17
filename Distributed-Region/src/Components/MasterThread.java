@@ -57,6 +57,7 @@ public class MasterThread implements Runnable {
                     if (result.equals("ERROR")) {
                         // 处理master死亡
                         System.out.println("<master> warning! master died");
+                        timer.cancel();
                         master_connector.close();
                         return;
                     } else if (result.startsWith("(copy)")) {
