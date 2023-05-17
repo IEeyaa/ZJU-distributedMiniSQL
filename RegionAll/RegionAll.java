@@ -1,13 +1,17 @@
-package components;
+import Region.*;
+import Master.*;
 
 import java.io.BufferedReader;
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.Socket;
 
-public class Main {
-    public static void main(String args[]){
-        String ip = "10.162.90.213";
-        int port = 12345;
+public class RegionAll {
+    public static void main(String[] args){
+        String ip;
+        int port;
         Socket socket;
         BufferedReader input = null;
         BufferedWriter output = null;
@@ -21,6 +25,7 @@ public class Main {
             output = new BufferedWriter(
                     new OutputStreamWriter(
                             socket.getOutputStream()));
+                            output.write(msg);
             output.write("server");
             output.newLine();
             output.flush();
@@ -28,11 +33,11 @@ public class Main {
         } catch (IOException e) {
             System.out.println(e);
         }
-        try {
-            Master master = new Master();
-            master.start();
-        } catch (Exception e) {
-            e.printStackTrace();
+
+        if(msg.split(":")[0].equals(socket.getLocalAddress()) && msg.split(":").equals("8081")){
+            new Master().start();
+        }else{
+            new Thread(new Region("127.0.0.1", 12345, 8081)).start();
         }
     }
 }

@@ -51,8 +51,8 @@ public class ZookeeperThread extends Thread implements HeartBeatThread {
         } catch (IOException e) {
             System.out.println(e);
         }
-        send("region");
-        // new HeartBeat(this, 10000).start();
+        send("master:8086");
+        new HeartBeat(this, 10000).start();
         System.out.println("Successfully connect to zookeeper");
     }
 

@@ -2,13 +2,13 @@ package components;
 
 import java.io.IOException;
 
-public class Master {
+public class Master extends Thread{
     private Table table;
     private Listener listener;
     private ZookeeperThread zookeeper;
 
     private final int PORT = 8086;
-    private final String ZookeeperIP = "10.181.205.230";
+    private final String ZookeeperIP = "10.162.90.213";
     private final int ZookeeperPort = 12345;
 
     public Master() throws IOException, InterruptedException {
@@ -25,8 +25,12 @@ public class Master {
         listener = new Listener(table);
     }
 
-    public void start() throws IOException, InterruptedException {
-        zookeeper.start();
-        listener.startListen(PORT);
+    public void run(){
+        try {
+            zookeeper.start();
+            listener.startListen(PORT);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
