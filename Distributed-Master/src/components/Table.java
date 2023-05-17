@@ -197,7 +197,7 @@ public class Table {
      * Output: none
      */
     public void removeRegion(String ip) {
-        if(ipToTables.get(ip) == null)
+        if(ipToTables.get(ip) == null || ipToSocket.get(ip) == null)
             return;
         for (String i : ipToTables.get(ip)) {
             String anotherIP = selectExcept(ip);
