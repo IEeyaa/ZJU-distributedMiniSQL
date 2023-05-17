@@ -4,6 +4,7 @@ import java.util.Iterator;
 
 import CATALOGMANAGER.CatalogManager;
 import Connection.Connect;
+import components.Master;
 
 // 用于连接zookeeper，汇报监听端口，同时持续监听zookeeper信息（广播/任命）
 public class ZookeeperThread implements Runnable {
@@ -59,7 +60,7 @@ public class ZookeeperThread implements Runnable {
                             }
                         }
                         // 新建一个master线程
-
+                        new Master(tableString).start();
                         Region.masterThread.stop();
                     }
                     // 初始连接

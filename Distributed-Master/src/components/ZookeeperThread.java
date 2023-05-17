@@ -26,7 +26,7 @@ public class ZookeeperThread extends Thread implements HeartBeatThread {
      * Output: none
      */
     public void send(String msg) {
-        synchronized(this){
+        synchronized (this) {
             try {
                 output.write(msg);
                 output.newLine();
