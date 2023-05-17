@@ -1,8 +1,8 @@
-package components;
+package src.components;
 
 import java.io.IOException;
 
-public class Master extends Thread{
+public class Master extends Thread {
     private Table table;
     private Listener listener;
     private ZookeeperThread zookeeper;
@@ -25,7 +25,7 @@ public class Master extends Thread{
         listener = new Listener(table);
     }
 
-    public void run(){
+    public void run() {
         try {
             zookeeper.start();
             listener.startListen(PORT);

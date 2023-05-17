@@ -1,4 +1,4 @@
-package components;
+package src.components;
 
 import java.net.Socket;
 import java.io.*;
@@ -46,7 +46,7 @@ public class SocketThread extends Thread implements HeartBeatThread {
             output.write(msg);
             output.newLine();
             output.flush();
-            System.out.println("Reply to " + ip  + ":" + msg);
+            System.out.println("Reply to " + ip + ":" + msg);
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -1,5 +1,3 @@
-import components.*;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -8,6 +6,7 @@ import java.io.OutputStreamWriter;
 import java.net.Socket;
 
 import Components.Region;
+import src.components.Master;
 
 public class RegionAll {
     public static void main(String[] args) throws IOException, InterruptedException {
@@ -17,7 +16,7 @@ public class RegionAll {
         BufferedReader input = null;
         BufferedWriter output = null;
         String msg = "";
-
+        System.out.println("start distributed minisql server!");
         try {
             socket = new Socket(ip, port);
             input = new BufferedReader(
@@ -30,14 +29,15 @@ public class RegionAll {
             output.newLine();
             output.flush();
             msg = input.readLine();
+            System.out.println(msg);
         } catch (IOException e) {
             System.out.println(e);
         }
 
-        if (msg.split(":")[0].equals(socket.getLocalAddress()) && msg.split(":").equals("8081")) {
+        if (msg.equals("master")) {
             new Master().start();
         } else {
-            new Thread(new Region("127.0.0.1", 12345, 8081)).start();
+            new Thread(new Region(ip, port, 8081)).start();
         }
     }
 }

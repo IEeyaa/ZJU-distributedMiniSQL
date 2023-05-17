@@ -1,4 +1,4 @@
-package components;
+package src.components;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

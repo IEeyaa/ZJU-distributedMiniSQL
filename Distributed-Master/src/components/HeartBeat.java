@@ -1,4 +1,4 @@
-package components;
+package src.components;
 
 public class HeartBeat extends Thread {
 

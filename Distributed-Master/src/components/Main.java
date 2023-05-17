@@ -1,11 +1,11 @@
-package components;
+package src.components;
 
 import java.io.BufferedReader;
 import java.io.*;
 import java.net.Socket;
 
 public class Main {
-    public static void main(String args[]){
+    public static void main(String args[]) {
         String ip = "10.162.90.213";
         int port = 12345;
         Socket socket;
