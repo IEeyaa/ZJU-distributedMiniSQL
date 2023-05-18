@@ -59,6 +59,7 @@ public class ZookeeperThread implements Runnable {
                                 tableString += ",";
                             }
                         }
+                        System.out.println(tableString);
                         // 新建一个master线程
                         new Master(tableString).start();
                         Region.masterThread.stop();

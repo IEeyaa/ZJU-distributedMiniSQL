@@ -6,7 +6,7 @@ import java.net.Socket;
 
 public class Main {
     public static void main(String args[]) {
-        String ip = "10.162.90.213";
+        String ip = "192.168.43.76";
         int port = 12345;
         Socket socket;
         BufferedReader input = null;
