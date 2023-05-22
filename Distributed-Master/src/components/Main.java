@@ -29,7 +29,7 @@ public class Main {
             System.out.println(e);
         }
         try {
-            Master master = new Master();
+            Master master = new Master(ip, port, 8086);
             master.start();
         } catch (Exception e) {
             e.printStackTrace();

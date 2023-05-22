@@ -10,7 +10,7 @@ import src.components.Master;
 
 public class RegionAll {
     public static void main(String[] args) throws IOException, InterruptedException {
-        String ip = "10.181.208.127";
+        String ip = "10.181.238.85";
         int port = 12345;
         int listenPort = 8081;
         Socket socket = null;
@@ -36,7 +36,7 @@ public class RegionAll {
         }
 
         if (msg.equals("master")) {
-            new Master().start();
+            new Master(ip, port, 8086).start();
         } else {
             new Thread(new Region(ip, port, listenPort)).start();
         }

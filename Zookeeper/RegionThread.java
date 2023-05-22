@@ -46,6 +46,8 @@ public class RegionThread implements Runnable {
                 connect_with_master();
             } catch (IOException e) {
                 e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         } else {
             // 告知其为region
@@ -55,22 +57,28 @@ public class RegionThread implements Runnable {
         }
     }
 
-    public void select_new_master() {
+    public void select_new_master() throws InterruptedException {
         // 选举出新的master
         Random random = new Random();
         List<String> keys = new ArrayList<String>(ZooKeeper.regionInfor.keySet());
-        String randomKey = keys.get(random.nextInt(keys.size()));
-        ZooKeeper.nowMaster = ZooKeeper.regionInfor.get(randomKey);
-        ZooKeeper.nowMaster.send("toMaster");
+        String new_master_address = keys.get(random.nextInt(keys.size()));
+
+        ZooKeeper.nowMaster.close();
+        ZooKeeper.regionInfor.remove(ZooKeeper.nowMaster.getAddress());
+
+        System.out.println(String.format("master have change %s", new_master_address));
+        ZooKeeper.regionInfor.get(new_master_address).send("toMaster");
+
+        Thread.sleep(10L);
         // 广播
-        String master_address = ZooKeeper.nowMaster.getAddress();
+        String master_address = new_master_address;
         for (Map.Entry<String, RegionThread> entry : ZooKeeper.regionInfor.entrySet()) {
             String key = entry.getKey();
             RegionThread masterThread = entry.getValue();
 
-            if (!key.equals(randomKey)) {
+            if (!key.equals(new_master_address)) {
                 // 跳过当前选出的 master
-                masterThread.send("change:" + master_address);
+                masterThread.send("change:" + master_address.split(":")[0] + ":8086");
             }
         }
     }
@@ -86,7 +94,7 @@ public class RegionThread implements Runnable {
     }
 
     // 保持于master之间的连接所用
-    public void connect_with_master() throws IOException {
+    public void connect_with_master() throws IOException, InterruptedException {
         // 持续监听master发送的数据
         String result = "";
         long lastReceivedTime = System.currentTimeMillis(); // 记录最后一次接收到数据的时间戳
@@ -105,7 +113,7 @@ public class RegionThread implements Runnable {
                 lastReceivedTime = System.currentTimeMillis();
             }
             // 移除Region
-            else if (result.startsWith("remove")) {
+            else if (result.startsWith("(remove)")) {
                 String removeIP = result.split("\\)")[1];
                 remove_region(removeIP);
             }

@@ -10,7 +10,7 @@ import Util.Utils;
 import Connection.Connection;
 
 public class Client {
-    final private String ZookeeperIP = "10.162.90.213";
+    final private String ZookeeperIP = "10.181.238.85";
     final private int ZookeeperPort = 12345;
 
     private String MasterIP = null;
@@ -231,6 +231,7 @@ public class Client {
                                     RegionIP = regioninfo.IP();
                                     RegionPort = regioninfo.Port();
                                     region = new Connection(RegionIP, RegionPort, "region");
+                                    region.connect();
                                     GetSqlReply(FILE_SQL + ";", "<get>" + FILE_TABLE, FILE_TABLE);
                                 } else {
                                     connectToRegion("<get>" + FILE_TABLE);
@@ -257,6 +258,7 @@ public class Client {
                         RegionIP = regioninfo.IP();
                         RegionPort = regioninfo.Port();
                         region = new Connection(RegionIP, RegionPort, "region");
+                        region.connect();
                         GetSqlReply(SQL + ";", "<get>" + TABLE, TABLE);
                     } else {
                         // not exist
