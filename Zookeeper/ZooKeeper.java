@@ -3,13 +3,14 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashMap;
 import java.util.Map;
 
 public class ZooKeeper {
     // zookeeper监听端口
     static int port = 12345;
     // 存储所有region节点的信息
-    static Map<String, RegionThread> regionInfor;
+    static Map<String, RegionThread> regionInfor = new HashMap<>();
     // 当前的master信息
     static RegionThread nowMaster = null;
 
@@ -34,7 +35,7 @@ public class ZooKeeper {
                     new Thread(new RegionThread(socket, Integer.parseInt(request.split(":")[1]), "region")).start();
                 } else if (request.startsWith("master")) {
                     // 分配给region线程处理
-                    new Thread(new RegionThread(socket, Integer.parseInt(request.split(":")[1]), "mastern")).start();
+                    new Thread(new RegionThread(socket, Integer.parseInt(request.split(":")[1]), "master")).start();
                 } else if (request.startsWith("server")) {
                     if (nowMaster == null) {
                         try {

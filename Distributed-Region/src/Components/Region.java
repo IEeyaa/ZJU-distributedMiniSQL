@@ -29,13 +29,26 @@ public class Region implements Runnable {
             e.printStackTrace();
         }
         System.out.println("hello, Welcome to REGION & minisql~");
+        // 监听端口
+        boolean portAvailable = false;
+        ServerSocket serverSocket = null;
+
+        while (!portAvailable) {
+            try {
+                serverSocket = new ServerSocket(regionListenPort);
+                portAvailable = true;
+            } catch (IOException e) {
+                regionListenPort++; // 自增端口号
+            }
+        }
+
         // 主动连接Zookeeper
         new Thread(new ZookeeperThread(ZookeeperIP, ZookeeperPort, regionListenPort)).start();
         // 测试用
         // Region.masterThread = new MasterThread("127.0.0.1", 8086, regionListenPort);
         // new Thread(Region.masterThread).start();
-        // 监听端口
-        try (ServerSocket serverSocket = new ServerSocket(regionListenPort)) {
+
+        try {
             // 每当出现新的连接，则建立一个线程来处理
             while (true) {
                 Socket socket = serverSocket.accept();

@@ -52,7 +52,6 @@ public class RegionThread implements Runnable {
             // 返回master地址和端口
             send(ZooKeeper.nowMaster.getAddress());
             ZooKeeper.regionInfor.put(getAddress(), this);
-            connect_with_region();
         }
     }
 
@@ -121,20 +120,6 @@ public class RegionThread implements Runnable {
             }
         }
         close();
-    }
-
-    // 保持于region之间的连接所用
-    public void connect_with_region() {
-        // 持续监听region发送的数据
-        String result = "";
-        while (true) {
-            result = receive();
-            if (result.equals("ERROR")) {
-                // 处理连接中断
-                System.out.println("region has closed socket");
-            }
-            close();
-        }
     }
 
     // 辅助函数
