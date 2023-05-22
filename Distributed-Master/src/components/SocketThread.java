@@ -86,8 +86,10 @@ public class SocketThread extends Thread implements HeartBeatThread {
             if (Cmd.equalsIgnoreCase("<quit>")) {
                 System.out.println("Socket with " + ip + "ends.");
                 running = false;
-            } else if (Cmd.equalsIgnoreCase("<create>")) {
-                send(table.createRequest());
+            } else if (Cmd.startsWith("<create>")) {
+                String[] cmds = Cmd.split(">");
+                if (cmds.length >= 2)
+                    send(table.createRequest(cmds[1]));
             } else if (Cmd.startsWith("<get>")) {
                 String[] cmds = Cmd.split(">");
                 if (cmds.length >= 2)
