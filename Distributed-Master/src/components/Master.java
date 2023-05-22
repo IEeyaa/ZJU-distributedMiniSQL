@@ -19,7 +19,8 @@ public class Master extends Thread {
         listener = new Listener(table);
     }
 
-    public Master(String tableString, String ZookeeperIP, int ZookeeperPort, int port) throws IOException, InterruptedException {
+    public Master(String tableString, String ZookeeperIP, int ZookeeperPort, int port)
+            throws IOException, InterruptedException {
         PORT = port;
         zookeeper = new ZookeeperThread(ZookeeperIP, ZookeeperPort);
         table = new Table(zookeeper, tableString);
