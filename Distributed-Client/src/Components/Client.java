@@ -10,7 +10,7 @@ import Util.Utils;
 import Connection.Connection;
 
 public class Client {
-    final private String ZookeeperIP = "10.181.238.85";
+    final private String ZookeeperIP = "192.168.43.76";
     final private int ZookeeperPort = 12345;
 
     private String MasterIP = null;
@@ -222,8 +222,8 @@ public class Client {
                             String FILE_TABLE = Utils.getTables(FILE_SQL);
 
                             if (FILE_METHOD.equals("create")) {
-                                connectToRegion("<create>");
-                                GetSqlReply(FILE_SQL + ";", "<create>", FILE_TABLE);
+                                connectToRegion("<create>" + TABLE);
+                                GetSqlReply(FILE_SQL + ";", "<create>" + TABLE, FILE_TABLE);
                                 continue;
                             } else {
                                 RegionInfo regioninfo = cache.get(FILE_TABLE);
@@ -246,9 +246,9 @@ public class Client {
                     continue;
                 } else if (METHOD.equals("create")) {
                     // If it is a create operation, send a create request to the Master
-                    connectToRegion("<create>");
+                    connectToRegion("<create>" + TABLE);
                     // connect to the Region and send the SQL
-                    GetSqlReply(SQL + ";", "<create>", TABLE);
+                    GetSqlReply(SQL + ";", "<create>" + TABLE, TABLE);
                     continue;
                 } else {
                     RegionInfo regioninfo = cache.get(TABLE);
