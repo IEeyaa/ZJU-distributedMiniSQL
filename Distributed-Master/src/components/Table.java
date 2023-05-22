@@ -48,7 +48,10 @@ public class Table {
      * Input: none
      * Ouput: a string of the selected region server's ip and port
      */
-    public String createRequest() {
+    public String createRequest(String tableName) {
+        if(tableToMainIp.keySet().contains(tableName)){
+            return tableToMainIp.get(tableName);
+        }
         int min = Integer.MAX_VALUE;
         String ip = null;
         for (String i : ipToTables.keySet()) {
