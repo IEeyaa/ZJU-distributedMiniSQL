@@ -36,7 +36,7 @@ public class RegionAll {
         }
 
         if (msg.equals("master")) {
-            new Master(8086).start();
+            new Master(ip, port, 8086).start();
         } else {
             new Thread(new Region(ip, port, listenPort)).start();
         }
