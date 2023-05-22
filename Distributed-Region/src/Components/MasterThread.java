@@ -98,7 +98,7 @@ public class MasterThread implements Runnable {
                     int file_length = dis.readInt();
                     // 追加到file中
                     try (FileOutputStream fos = new FileOutputStream(tableName, true)) {
-                        byte[] buffer = new byte[1024];
+                        byte[] buffer = new byte[1024 * 1024];
                         int bytesRead;
                         long totalBytesRead = 0;
                         while (totalBytesRead < file_length && (bytesRead = dis.read(buffer, 0,
@@ -112,7 +112,7 @@ public class MasterThread implements Runnable {
                     // 重写
                     int file_length = dis.readInt();
                     try (FileOutputStream fos = new FileOutputStream(tableName, false)) {
-                        byte[] buffer = new byte[1024];
+                        byte[] buffer = new byte[1024 * 1024];
                         int bytesRead;
                         long totalBytesRead = 0;
                         while (totalBytesRead < file_length && (bytesRead = dis.read(buffer, 0,

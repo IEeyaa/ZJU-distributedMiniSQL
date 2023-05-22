@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import Components.ZookeeperThread;
+
 public class RegionThread implements Runnable {
     private static final long HEARTBEAT_TIMEOUT = 12000;
     private Socket socket;
@@ -63,6 +65,13 @@ public class RegionThread implements Runnable {
         List<String> keys = new ArrayList<String>(ZooKeeper.regionInfor.keySet());
         String new_master_address = keys.get(random.nextInt(keys.size()));
 
+        // 只有一个Region
+        if (keys.size() <= 1) {
+            System.out.println("no one lived!\n");
+            ZooKeeper.nowMaster.close();
+            ZooKeeper.regionInfor.remove(ZooKeeper.nowMaster.getAddress());
+            ZooKeeper.nowMaster = null;
+        }
         ZooKeeper.nowMaster.close();
         ZooKeeper.regionInfor.remove(ZooKeeper.nowMaster.getAddress());
 
@@ -104,7 +113,6 @@ public class RegionThread implements Runnable {
             if (result.equals("ERROR")) {
                 System.out.println("master has closed socket");
                 select_new_master();
-                close();
                 break;
             }
             // 收到心跳
@@ -123,7 +131,6 @@ public class RegionThread implements Runnable {
             if (elapsedTime > HEARTBEAT_TIMEOUT) {
                 System.out.println("Heartbeat timeout");
                 select_new_master();
-                close();
                 break;
             }
         }

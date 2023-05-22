@@ -19,7 +19,7 @@ public class API {
             CatalogManager.initial_catalog(); // init Catalog Manager
             IndexManager.initial_index(); // init Index Manager
         } catch (Exception e) {
-            throw new QException(1, 500, "Failed to initialize API!");
+            throw new QException(1, 500, "Failed to initialize API!" + e);
         }
     }
 

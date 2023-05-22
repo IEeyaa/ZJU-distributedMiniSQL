@@ -67,6 +67,7 @@ public class ZookeeperThread implements Runnable {
                     // 初始连接
                     else if (result.equals("ERROR")) {
                         System.out.println("Zookeeper error");
+                        System.exit(1);
                     } else {
                         System.out.println(result);
                         String[] parts = result.split(":");
