@@ -101,7 +101,7 @@ public class Table {
             a.add(tableName);
             ipToTables.put(regionIp, a);
         }
-        System.out.println("Successfully create");
+        // System.out.println("Successfully create");
     }
 
     /*
@@ -116,7 +116,7 @@ public class Table {
     public void dropSuccess(String tableName, String regionIp) {
         tableToMainIp.remove(tableName, regionIp);
         ipToTables.get(regionIp).remove(tableName);
-        System.out.println("Successfully drop");
+        // System.out.println("Successfully drop");
     }
 
     /*
@@ -138,7 +138,7 @@ public class Table {
     public void addRegion(String ip) {
         ArrayList<String> a = new ArrayList<>();
         ipToTables.put(ip, a);
-        System.out.println("Add a new region:" + ip);
+        // System.out.println("Add a new region:" + ip);
     }
 
     /*
@@ -191,7 +191,7 @@ public class Table {
                 }
         }
         ipToTables.put(ip, a);
-        System.out.println("Add a new region:" + ip);
+        // System.out.println("Add a new region:" + ip);
     }
 
     /*
@@ -215,7 +215,7 @@ public class Table {
         zookeeper.send("(remove)" + ip);
         ipToTables.remove(ip);
         ipToSocket.remove(ip);
-        System.out.println("Remove a region:" + ip);
+        // System.out.println("Remove a region:" + ip);
     }
 
     /*

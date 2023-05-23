@@ -31,7 +31,7 @@ public class ZookeeperThread extends Thread implements HeartBeatThread {
                 output.write(msg);
                 output.newLine();
                 output.flush();
-                System.out.println("Send to zookeeper:" + msg);
+                System.out.println("[Zookeeper]Send to zookeeper:" + msg);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -53,7 +53,7 @@ public class ZookeeperThread extends Thread implements HeartBeatThread {
         }
         send("master:8086");
         new HeartBeat(this, 10000).start();
-        System.out.println("Successfully connect to zookeeper");
+        System.out.println("[Zookeeper]Successfully connect to zookeeper");
     }
 
     @Override

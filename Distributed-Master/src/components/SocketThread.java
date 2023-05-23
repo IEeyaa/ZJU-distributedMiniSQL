@@ -13,6 +13,7 @@ public class SocketThread extends Thread implements HeartBeatThread {
     HeartBeat heartBeat = null;
     boolean running = true;
     long lasttime;
+    int isRegion = 0;
 
     /*
      * Function: a constructor with a Table object and a socket
@@ -46,6 +47,11 @@ public class SocketThread extends Thread implements HeartBeatThread {
             output.write(msg);
             output.newLine();
             output.flush();
+            if(isRegion == 1){
+                System.out.print("[Region]   ");
+            }else if(isRegion == 2){
+                System.out.print("[Client]   ");
+            }
             System.out.println("Reply to " + ip + ":" + msg);
         } catch (IOException e) {
             e.printStackTrace();
@@ -64,7 +70,12 @@ public class SocketThread extends Thread implements HeartBeatThread {
                 String str = input.readLine();
                 if (str == null)
                     continue;
-                System.out.println("Read cmd from " + ip + ":" + str);
+                if(isRegion == 1){
+                    System.out.print("[Region]   ");
+                }else if(isRegion == 2){
+                    System.out.print("[Client]   ");
+                }
+                System.out.println("Read msg from " + ip + ":" + str);
                 process(str);
             }
             if (heartBeat != null) {
@@ -97,6 +108,7 @@ public class SocketThread extends Thread implements HeartBeatThread {
             } else if (Cmd.equalsIgnoreCase("<show>")) {
                 send(table.getTables());
             }
+            isRegion = 2;
         } else if (Cmd.startsWith("(")) {
             if (Cmd.startsWith("(hello)")) {
                 Cmd = Cmd.split("\\)")[1] + ":";
@@ -108,8 +120,9 @@ public class SocketThread extends Thread implements HeartBeatThread {
                     table.addRegion(ip);
                 }
                 lasttime = System.currentTimeMillis();
-                heartBeat = new HeartBeat(this, 22000);
+                heartBeat = new HeartBeat(this, 15000);
                 heartBeat.start();
+                isRegion = 1;
             } else if (Cmd.startsWith("(CREATE)")) {
                 String[] cmds = Cmd.split("\\)");
                 if (cmds.length >= 2)
