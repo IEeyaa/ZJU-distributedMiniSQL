@@ -16,17 +16,14 @@ public class ZooKeeper {
 
     public static void main(String[] args) throws Exception {
         try (ServerSocket serverSocket = new ServerSocket(port)) {
-            System.out.println("ZooKeeperServer is running on port " + port);
+            System.out.println("Welcome to Distributed MiniSQL - ZooKeeperServer is running on port " + port + "\n");
             while (true) {
                 // 监听端口
                 Socket socket = serverSocket.accept(); // 等待客户端连接请求
                 // IO请求
                 BufferedReader in = new BufferedReader(new java.io.InputStreamReader(socket.getInputStream()));
                 BufferedWriter out = new BufferedWriter(new java.io.OutputStreamWriter(socket.getOutputStream()));
-                // 消息打印
-                System.out.println("Received a connection from " + socket.getInetAddress());
                 String request = in.readLine();
-                System.out.println("Received request: " + request);
                 if (request.startsWith("client")) {
                     // 分配给client线程处理
                     new Thread(new ClientThread(socket, out)).start();
@@ -43,7 +40,7 @@ public class ZooKeeper {
                             out.newLine();
                             out.flush();
                         } catch (IOException e) {
-                            System.err.println("Failed to send message to the " + "server: " + e.getMessage());
+                            System.err.println("<ERROR>Failed to send message to the " + "server: " + e.getMessage());
                         }
                     } else {
                         try {
@@ -51,12 +48,12 @@ public class ZooKeeper {
                             out.newLine();
                             out.flush();
                         } catch (IOException e) {
-                            System.err.println("Failed to send message to the " + "server: " + e.getMessage());
+                            System.err.println("<ERROR>Failed to send message to the " + "server: " + e.getMessage());
                         }
                     }
                     socket.close();
                 } else {
-                    System.out.println("invalid request");
+                    System.out.println("<ERROR>invalid request");
                     socket.close();
                 }
             }

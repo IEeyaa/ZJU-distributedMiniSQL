@@ -15,6 +15,8 @@ public class Region implements Runnable {
     static public List<ClientThread> threads = new ArrayList<>();
     static public MasterThread masterThread;
     static int regionListenPort = 8080;
+    // 标识region是否可以正常工作
+    static boolean alive = true;
 
     public Region(String ip, int port, int listenPort) {
         Region.ZookeeperIP = ip;
@@ -28,7 +30,6 @@ public class Region implements Runnable {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println("hello, Welcome to REGION & minisql~");
         // 监听端口
         boolean portAvailable = false;
         ServerSocket serverSocket = null;
@@ -41,16 +42,17 @@ public class Region implements Runnable {
                 regionListenPort++; // 自增端口号
             }
         }
+        // 打印欢迎信息
+        System.out.println(
+                String.format("HELLO, Welcome to REGION & minisql~ the region listening port is %d\n",
+                        regionListenPort));
 
         // 主动连接Zookeeper
         new Thread(new ZookeeperThread(ZookeeperIP, ZookeeperPort, regionListenPort)).start();
-        // 测试用
-        // Region.masterThread = new MasterThread("127.0.0.1", 8086, regionListenPort);
-        // new Thread(Region.masterThread).start();
 
         try {
             // 每当出现新的连接，则建立一个线程来处理
-            while (true) {
+            while (alive) {
                 Socket socket = serverSocket.accept();
                 ClientThread clientThread = new ClientThread(socket);
                 threads.add(clientThread);

@@ -43,9 +43,9 @@ public class ClientThread implements Runnable {
                 // 预处理
                 preload();
             } catch (IOException e) {
-                System.out.println("101 Run time error : IO exception occurs");
+                System.out.println("<minisql>101 Run time error : IO exception occurs");
             } catch (Exception e) {
-                System.out.println("Default error: " + e.getMessage());
+                System.out.println("<minisql>Default error: " + e.getMessage());
             }
             socket.close();
 
@@ -204,7 +204,7 @@ public class ClientThread implements Runnable {
             out.flush();
             return true;
         } catch (IOException e) {
-            System.err.println("Failed to send message to the " + type + "server: " + e.getMessage());
+            System.err.println("<error>Failed to send message to the " + type + "server: " + e.getMessage());
             return false;
         }
     }
@@ -213,7 +213,7 @@ public class ClientThread implements Runnable {
         try {
             return in.readLine();
         } catch (IOException e) {
-            System.err.println("Failed to receive message from the " + type + "server: " + e.getMessage());
+            System.err.println("<error>Failed to receive message from the " + type + "server: " + e.getMessage());
             return null;
         }
     }
@@ -223,7 +223,7 @@ public class ClientThread implements Runnable {
             socket.close();
             return true;
         } catch (IOException e) {
-            System.err.println("Failed to close the connection to the " + type + "server: " + e.getMessage());
+            System.err.println("<error>Failed to close the connection to the " + type + "server: " + e.getMessage());
             return false;
         }
     }

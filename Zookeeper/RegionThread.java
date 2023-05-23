@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import Components.ZookeeperThread;
-
 public class RegionThread implements Runnable {
     private static final long HEARTBEAT_TIMEOUT = 12000;
     private Socket socket;
@@ -38,11 +36,10 @@ public class RegionThread implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println(String.format("A region has enter, its address is %s:%d", ip, port));
         // 选举Master
         if (this.type.equals("master")) {
             ZooKeeper.nowMaster = this;
-            System.out.println("Region registered as master: " + getAddress());
+            System.out.println(String.format("<master>Server %s registered as master", getAddress()));
             // 告知其为master
             try {
                 connect_with_master();
@@ -54,6 +51,7 @@ public class RegionThread implements Runnable {
         } else {
             // 告知其为region
             // 返回master地址和端口
+            System.out.println(String.format("<region>Server %s registered as region", getAddress()));
             send(ZooKeeper.nowMaster.getAddress());
             ZooKeeper.regionInfor.put(getAddress(), this);
         }
@@ -67,7 +65,7 @@ public class RegionThread implements Runnable {
 
         // 只有一个Region
         if (keys.size() <= 1) {
-            System.out.println("no one lived!\n");
+            System.out.println("<master_change>no enough server! waiting for server to enter");
             ZooKeeper.nowMaster.close();
             ZooKeeper.regionInfor.remove(ZooKeeper.nowMaster.getAddress());
             ZooKeeper.nowMaster = null;
@@ -75,7 +73,7 @@ public class RegionThread implements Runnable {
         ZooKeeper.nowMaster.close();
         ZooKeeper.regionInfor.remove(ZooKeeper.nowMaster.getAddress());
 
-        System.out.println(String.format("master have change %s", new_master_address));
+        System.out.println(String.format("<master_change>master have changed to %s", new_master_address));
         ZooKeeper.regionInfor.get(new_master_address).send("toMaster");
 
         Thread.sleep(10L);
@@ -96,9 +94,9 @@ public class RegionThread implements Runnable {
         if (ZooKeeper.regionInfor.containsKey(address)) {
             ZooKeeper.regionInfor.get(address).close();
             ZooKeeper.regionInfor.remove(address);
-            System.out.println("remove successfully");
+            System.out.println(String.format("<region_move>remove %s successfully", address));
         } else {
-            System.out.println("no region found");
+            System.out.println("<region_move>ERROR! no region found");
         }
     }
 
@@ -111,7 +109,7 @@ public class RegionThread implements Runnable {
             result = receive();
             // 连接意外中断
             if (result.equals("ERROR")) {
-                System.out.println("master has closed socket");
+                System.out.println("<master>master died");
                 select_new_master();
                 break;
             }
@@ -129,7 +127,7 @@ public class RegionThread implements Runnable {
             long currentTime = System.currentTimeMillis();
             long elapsedTime = currentTime - lastReceivedTime;
             if (elapsedTime > HEARTBEAT_TIMEOUT) {
-                System.out.println("Heartbeat timeout");
+                System.out.println("<master>master has no heartbeat!");
                 select_new_master();
                 break;
             }

@@ -177,12 +177,10 @@ public class CatalogManager {
         Table tmpTable;
         Iterator<Map.Entry<String, Table>> iter = tables.entrySet().iterator();
         String result = "";
-        System.out.println(123);
         while (iter.hasNext()) {
             Map.Entry entry = iter.next();
             tmpTable = (Table) entry.getValue();
             result = result + tmpTable.tableName + ",";
-            System.out.println(tmpTable.tableName);
         }
         return result;
     }

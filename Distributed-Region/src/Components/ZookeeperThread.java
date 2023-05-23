@@ -24,7 +24,7 @@ public class ZookeeperThread implements Runnable {
         try {
             zookeeper_connector = new Connect(ZookeeperIP, ZookeeperPort, "zookeeper");
             if (!zookeeper_connector.connect()) {
-                System.out.println("no zookeeper, sorry");
+                System.out.println("<zookeeper>no zookeeper alive, connection failed");
                 System.exit(1);
             }
             System.out.println("<zookeeper>connect zookeeper OK");
@@ -32,17 +32,19 @@ public class ZookeeperThread implements Runnable {
             while (true) {
                 String result = zookeeper_connector.receive();
                 if (result != null) {
-                    // 打印Zookeeper信息
-                    System.out.println("<zookeeper>" + result);
                     // 更换Master节点, 数据格式master_change:ip:port
                     if (result.startsWith("change")) {
+                        System.out.println(String.format("<zookeeper>master change to %s!", result));
                         String[] parts = result.split(":");
+                        // 切断与当前master的连接
+                        Region.masterThread.stop();
+                        // 连接到新的master
                         Region.masterThread = new MasterThread(parts[1], Integer.parseInt(parts[2]), regionListenPort);
                         new Thread(Region.masterThread).start();
                     }
                     // 成为新的master, 数据格式master
                     else if (result.startsWith("toMaster")) {
-                        System.out.println("I'm the new master");
+                        System.out.println("<zookeeper>you're the new master!");
                         // 处理其它事情
                         // 1.new一个master线程
                         // 2.new的时候利用CatalogManager.get_table()获取表信息并传入构造函数
@@ -59,17 +61,22 @@ public class ZookeeperThread implements Runnable {
                                 tableString += ",";
                             }
                         }
-                        System.out.println(tableString);
-                        // 新建一个master线程
-                        new Master(tableString, ZookeeperIP, ZookeeperPort, 8086).start();
+                        // 关闭与master的长连接
                         Region.masterThread.stop();
+                        // 关闭Region线程的端口监听
+                        Region.alive = false;
+                        // 关闭与zookeeper的长连接
+                        zookeeper_connector.close();
+                        // 新建一个master线程并启动
+                        new Master(tableString, ZookeeperIP, ZookeeperPort, 8086).start();
+                        // 准备结束当前线程
+                        break;
+                    } else if (result.equals("ERROR")) {
+                        System.out.println("<Zookeeper>Zookeeper error");
+                        System.exit(1);
                     }
                     // 初始连接
-                    else if (result.equals("ERROR")) {
-                        System.out.println("Zookeeper error");
-                        System.exit(1);
-                    } else {
-                        System.out.println(result);
+                    else {
                         String[] parts = result.split(":");
                         if (parts[0] == "null") {
                             continue;

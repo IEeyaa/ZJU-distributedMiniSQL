@@ -45,7 +45,7 @@ public class Connect {
             writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             return true;
         } catch (IOException e) {
-            System.err.println("Failed to connect to the " + type + "server: " + e.getMessage());
+            System.err.println("<ERROR>Failed to connect to the " + type + "server: " + e.getMessage());
             return false;
         }
     }
@@ -57,7 +57,7 @@ public class Connect {
             writer.flush();
             return true;
         } catch (IOException e) {
-            System.err.println("Failed to send message to the " + type + "server: " + e.getMessage());
+            System.err.println("<ERROR>Failed to send message to the " + type + "server: " + e.getMessage());
             return false;
         }
     }
@@ -66,7 +66,7 @@ public class Connect {
         try {
             return reader.readLine();
         } catch (IOException e) {
-            System.err.println("Failed to receive message from the " + type + "server: " + e.getMessage());
+            System.err.println("<ERROR>Failed to receive message from the " + type + "server: " + e.getMessage());
             return "ERROR";
         }
     }
@@ -76,7 +76,7 @@ public class Connect {
             socket.close();
             return true;
         } catch (IOException e) {
-            System.err.println("Failed to close the connection to the " + type + "server: " + e.getMessage());
+            System.err.println("<ERROR>Failed to close the connection to the " + type + "server: " + e.getMessage());
             return false;
         }
     }

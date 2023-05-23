@@ -10,7 +10,7 @@ import src.components.Master;
 
 public class RegionAll {
     public static void main(String[] args) throws IOException, InterruptedException {
-        String ip = "192.168.43.76";
+        String ip = "127.0.0.1";
         int port = 12345;
         int listenPort = 8081;
         Socket socket = null;
@@ -30,7 +30,6 @@ public class RegionAll {
             output.newLine();
             output.flush();
             msg = input.readLine();
-            System.out.println(msg);
         } catch (IOException e) {
             System.out.println(e);
         }

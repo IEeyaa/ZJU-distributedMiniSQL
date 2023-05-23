@@ -405,7 +405,6 @@ public class Interpreter {
             throw new QException(0, 1001, "Extra parameters in quit");
 
         API.store();
-        System.out.println("Data stored");
         System.exit(0);
     }
 }

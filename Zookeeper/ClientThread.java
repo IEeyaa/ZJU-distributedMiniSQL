@@ -22,7 +22,7 @@ public class ClientThread implements Runnable {
     }
 
     public void run() {
-        System.out.println(String.format("A client has enter, its address is %s:%d", ip, port));
+        System.out.println(String.format("<client>Client %s:%d has enter", ip, port));
         if (ZooKeeper.nowMaster != null) {
             send(ZooKeeper.nowMaster.getAddress());
         } else {
@@ -42,7 +42,7 @@ public class ClientThread implements Runnable {
             out.flush();
             return true;
         } catch (IOException e) {
-            System.err.println("Failed to send message to the " + type + "server: " + e.getMessage());
+            System.err.println("<ERROR>Failed to send message to the " + type + "server: " + e.getMessage());
             return false;
         }
     }
