@@ -120,7 +120,7 @@ public class SocketThread extends Thread implements HeartBeatThread {
                     table.addRegion(ip);
                 }
                 lasttime = System.currentTimeMillis();
-                heartBeat = new HeartBeat(this, 15000);
+                heartBeat = new HeartBeat(this, 12000);
                 heartBeat.start();
                 isRegion = 1;
             } else if (Cmd.startsWith("(CREATE)")) {

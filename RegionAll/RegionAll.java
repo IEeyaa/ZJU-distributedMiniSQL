@@ -10,7 +10,7 @@ import src.components.Master;
 
 public class RegionAll {
     public static void main(String[] args) throws IOException, InterruptedException {
-        String ip = "127.0.0.1";
+        String ip = "192.168.43.95";
         int port = 12345;
         int listenPort = 8081;
         Socket socket = null;
