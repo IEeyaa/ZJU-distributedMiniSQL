@@ -1,7 +1,7 @@
 import random
 
 # 定义表名和列名
-table_name = "my_table3"
+table_name = "table1"
 columns = ["id", "name", "age", "city"]
 
 # 定义数据生成函数
@@ -25,14 +25,14 @@ create_table_sql = f"create table {table_name} (id int, name char(255), age int,
 
 # 生成插入数据的SQL语句
 insert_data_sql = ""
-for _ in range(10000):
+for _ in range(1000):
     data = generate_data()
     values = [str(data[column]) if isinstance(data[column], int)
               else f"'{data[column]}'" for column in columns]
     insert_data_sql += f"insert into {table_name} values ({', '.join(values)});\n"
 
 # 将SQL语句写入文件
-with open("data/cai3.sql", "w") as sql_file:
+with open("data/cai1.sql", "w") as sql_file:
     sql_file.write(create_table_sql)
     sql_file.write(insert_data_sql)
 

@@ -231,7 +231,11 @@ public class Client {
                                     RegionIP = regioninfo.IP();
                                     RegionPort = regioninfo.Port();
                                     region = new Connection(RegionIP, RegionPort, "region");
-                                    region.connect();
+                                    if (!region.connect()) {
+                                        System.err.println("Error: Region DIE!");
+                                        cache.remove(FILE_TABLE);
+                                        connectToRegion("<get>" + FILE_TABLE);
+                                    }
                                     GetSqlReply(FILE_SQL + ";", "<get>" + FILE_TABLE, FILE_TABLE);
                                 } else {
                                     connectToRegion("<get>" + FILE_TABLE);
@@ -258,7 +262,11 @@ public class Client {
                         RegionIP = regioninfo.IP();
                         RegionPort = regioninfo.Port();
                         region = new Connection(RegionIP, RegionPort, "region");
-                        region.connect();
+                        if (!region.connect()) {
+                            System.err.println("Error: Region DIE!");
+                            cache.remove(TABLE);
+                            connectToRegion("<get>" + TABLE);
+                        }
                         GetSqlReply(SQL + ";", "<get>" + TABLE, TABLE);
                     } else {
                         // not exist
