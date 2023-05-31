@@ -23,7 +23,7 @@
   |     \<quit>     |              null              |
   |    \<create>    |            ip:port             |
   | \<get>tablename |            ip:port             |
-  |     \<show>     | {<br>table1,<br/>table2,<br/>} |
+  |\<show>tablename | {<br>table1,<br/>table2,<br/>} |
 
 - client &rarr; region
 
@@ -31,9 +31,6 @@
   | :------: | :----: |
   |   SQL    | result |
 
-## 第二阶段
-
-zookeeper实现
 
 - client &rarr; zookeeper
 

@@ -3,6 +3,6 @@
 
 ## Zookeeper 地址
 
-ip:#
+ip:127.0.0.1
 
-port:2183
+port:12345
