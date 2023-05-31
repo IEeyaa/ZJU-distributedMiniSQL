@@ -4,13 +4,16 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
+import java.util.Scanner;
 
 import Components.Region;
 import src.components.Master;
 
 public class RegionAll {
     public static void main(String[] args) throws IOException, InterruptedException {
-        String ip = "192.168.43.95";
+        System.out.println("请输入Zookeeper IP");
+        Scanner i = new Scanner(System.in);
+        String ip = i.nextLine();
         int port = 12345;
         int listenPort = 8081;
         Socket socket = null;

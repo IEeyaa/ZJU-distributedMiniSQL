@@ -49,14 +49,14 @@ public class Table {
      * Ouput: a string of the selected region server's ip and port
      */
     public String createRequest(String tableName) {
-        if(tableToMainIp.keySet().contains(tableName)){
+        if (tableToMainIp.keySet().contains(tableName)) {
             return tableToMainIp.get(tableName);
         }
         int min = Integer.MAX_VALUE;
         String ip = null;
         for (String i : ipToTables.keySet()) {
-            if (ipToTables.get(i).size() < min) {
-                min = ipToTables.get(i).size();
+            if (Integer.valueOf(ipToTables.get(i).get(0)) < min) {
+                min = Integer.valueOf(ipToTables.get(i).get(0));
                 ip = i;
             }
         }
@@ -89,15 +89,21 @@ public class Table {
      * Output: none
      */
     public void createSuccess(String tableName, String regionIp) {
+        ArrayList<String> a = new ArrayList<>();
+        a.add("0");
         if (!tableToMainIp.containsKey(tableName)) {
             tableToMainIp.put(tableName, regionIp);
+            if (ipToTables.containsKey(regionIp)) {
+                ipToTables.get(regionIp).set(0, Integer.toString(Integer.valueOf(ipToTables.get(regionIp).get(0)) + 1));
+            } else {
+                a.set(0, "1");
+            }
         } else {
             tableToSlaveIp.put(tableName, regionIp);
         }
         if (ipToTables.containsKey(regionIp)) {
             ipToTables.get(regionIp).add(tableName);
         } else {
-            ArrayList<String> a = new ArrayList<>();
             a.add(tableName);
             ipToTables.put(regionIp, a);
         }
@@ -114,7 +120,12 @@ public class Table {
      * Output: none
      */
     public void dropSuccess(String tableName, String regionIp) {
-        tableToMainIp.remove(tableName, regionIp);
+        if (tableToMainIp.get(tableName).equals(regionIp)) {
+            tableToMainIp.remove(tableName, regionIp);
+            ipToTables.get(regionIp).set(0, Integer.toString(Integer.valueOf(ipToTables.get(regionIp).get(0)) - 1));
+        } else {
+            tableToSlaveIp.remove(tableName, regionIp);
+        }
         ipToTables.get(regionIp).remove(tableName);
         // System.out.println("Successfully drop");
     }
@@ -137,6 +148,7 @@ public class Table {
      */
     public void addRegion(String ip) {
         ArrayList<String> a = new ArrayList<>();
+        a.add("0");
         ipToTables.put(ip, a);
         // System.out.println("Add a new region:" + ip);
     }
@@ -150,12 +162,15 @@ public class Table {
      */
     public void addRegion(String ip, String tableString) {
         ArrayList<String> a = new ArrayList<>();
+        a.add("0");
+        int cnt = 0;
         String[] tables = tableString.split(",");
         switch (ipToTables.size()) {
             case 0:
                 for (String table : tables) {
                     if (!table.equals("")) {
                         a.add(table);
+                        cnt++;
                         tableToMainIp.put(table, ip);
                     }
                 }
@@ -176,6 +191,7 @@ public class Table {
                 for (String table : tables) {
                     if (!table.equals("")) {
                         a.add(table);
+                        cnt++;
                         if (myTables.contains(table)) {
                             tableToMainIp.put(table, ip);
                             String anotherIP = selectExcept(ip);
@@ -190,6 +206,7 @@ public class Table {
                     }
                 }
         }
+        a.set(0, Integer.toString(cnt));
         ipToTables.put(ip, a);
         // System.out.println("Add a new region:" + ip);
     }
@@ -203,6 +220,8 @@ public class Table {
         if (ipToTables.get(ip) == null || ipToSocket.get(ip) == null)
             return;
         for (String i : ipToTables.get(ip)) {
+            if (!tableToMainIp.containsKey(i))
+                continue;
             String anotherIP = selectExcept(ip);
             if (tableToMainIp.get(i).equals(ip)) {
                 tableToMainIp.put(i, anotherIP);
@@ -242,8 +261,8 @@ public class Table {
         int min = Integer.MAX_VALUE;
         String slaveIP = null;
         for (String i : ipToTables.keySet()) {
-            if (!i.equals(mainIP) && ipToTables.get(i).size() < min) {
-                min = ipToTables.get(i).size();
+            if (!i.equals(mainIP) && Integer.valueOf(ipToTables.get(i).get(0)) < min) {
+                min = Integer.valueOf(ipToTables.get(i).get(0));
                 slaveIP = i;
             }
         }

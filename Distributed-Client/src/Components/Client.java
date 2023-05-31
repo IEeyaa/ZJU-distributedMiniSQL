@@ -10,7 +10,7 @@ import Util.Utils;
 import Connection.Connection;
 
 public class Client {
-    final private String ZookeeperIP = "192.168.43.76";
+    final private String ZookeeperIP;
     final private int ZookeeperPort = 12345;
 
     private String MasterIP = null;
@@ -27,6 +27,9 @@ public class Client {
     private Connection region = null;
 
     public Client() {
+        System.out.println("请输入Zookeeper IP");
+        Scanner i = new Scanner(System.in);
+        ZookeeperIP = i.nextLine();
         cache = new Cache();
         scanner = new Scanner(System.in);
     }
